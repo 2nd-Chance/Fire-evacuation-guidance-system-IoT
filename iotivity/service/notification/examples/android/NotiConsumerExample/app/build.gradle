@@ -1,0 +1,62 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "20.0.0"
+
+    packagingOptions {
+        pickFirst 'lib/armeabi/libocstack-jni.so'
+        pickFirst 'lib/armeabi-v7a/libocstack-jni.so'
+        pickFirst 'lib/x86/libocstack-jni.so'
+        pickFirst 'lib/x86_64/libocstack-jni.so'
+        pickFirst 'lib/arm64-v8a/libocstack-jni.so'
+        pickFirst 'lib/armeabi/libca-interface.so'
+        pickFirst 'lib/armeabi-v7a/libca-interface.so'
+        pickFirst 'lib/x86/libca-interface.so'
+        pickFirst 'lib/x86_64/libca-interface.so'
+        pickFirst 'lib/arm64-v8a/libca-interface.so'
+        pickFirst 'lib/armeabi/libresource_directory.so'
+        pickFirst 'lib/armeabi-v7a/libresource_directory.so'
+        pickFirst 'lib/x86/libresource_directory.so'
+        pickFirst 'lib/x86_64/libresource_directory.so'
+        pickFirst 'lib/arm64-v8a/libresource_directory.so'
+    }
+
+    defaultConfig {
+        applicationId "sample.notification.service.iotivity.org.notificationconsumersample"
+        minSdkVersion 21
+        targetSdkVersion 21
+        versionCode 1
+        versionName "1.0"
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+    project.ext.versionCodes = ['armeabi':1, 'armeabi-v7a':2, 'arm64-v8a':3, 'x86':4, 'x86_64':5]
+
+    applicationVariants.all { variant ->
+        // assign different version code for each output
+        variant.outputs.each { output ->
+            output.versionCodeOverride =
+                    project.ext.versionCodes.get(output.getFilter(com.android.build.OutputFile.ABI),
+                            0) * 1000000 + defaultConfig.versionCode
+        }
+    }
+
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'armeabi', 'x86', 'armeabi-v7a', 'x86_64', 'arm64-v8a'
+            universalApk true
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile ":iotivity-base-${RELEASE}@aar"
+    compile ":iotivity-notification-service-${RELEASE}@aar"
+}

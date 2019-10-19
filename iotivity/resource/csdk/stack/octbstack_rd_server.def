@@ -1,0 +1,13 @@
+; APIs used when RD_MODE includes SERVER
+
+OCBindResourceInsToResource
+OCGetResourceIns
+OCRDDatabaseInit
+OCRDDatabaseClose
+OCRDDatabaseDeleteResources
+OCRDDatabaseDiscoveryPayloadCreate
+OCRDDatabaseGetStorageFilename
+OCRDDatabaseSetStorageFilename
+OCRDDatabaseStoreResources
+OCRDStart
+OCRDStop

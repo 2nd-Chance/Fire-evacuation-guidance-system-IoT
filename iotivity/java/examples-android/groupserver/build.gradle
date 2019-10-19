@@ -1,0 +1,57 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "20.0.0"
+
+    defaultConfig {
+        applicationId "org.iotivity.base.examples.groupserver"
+        minSdkVersion 21
+        targetSdkVersion 21
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    lintOptions {
+        abortOnError false
+    }
+
+    project.ext.versionCodes = ['armeabi':1, 'armeabi-v7a':2, 'arm64-v8a':3, 'x86':4, 'x86_64':5]
+
+    applicationVariants.all { variant ->
+        // assign different version code for each output
+        variant.outputs.each { output ->
+            output.versionCodeOverride =
+                    project.ext.versionCodes.get(output.getFilter(com.android.build.OutputFile.ABI),
+                            0) * 1000000 + defaultConfig.versionCode
+        }
+    }
+
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'armeabi', 'x86', 'armeabi-v7a', 'x86_64', 'arm64-v8a'
+            universalApk true
+        }
+    }
+}
+repositories {
+    flatDir {
+        dirs "../../iotivity-android/build/outputs/aar/"
+    }
+}
+
+try {
+    dependencies {
+        compile ":iotivity-base-${RELEASE}@aar"
+    }
+} catch (all) {
+    print "${ERROR_MSG}"
+    assert all
+}

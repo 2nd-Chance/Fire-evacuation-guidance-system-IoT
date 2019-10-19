@@ -1,0 +1,2 @@
+run.bat text eol=crlf
+*.dat binary

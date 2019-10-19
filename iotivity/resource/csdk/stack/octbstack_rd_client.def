@@ -1,0 +1,9 @@
+; APIs used when RD_MODE includes CLIENT
+
+OCBindResourceInsToResource
+OCGetResourceIns
+OCRDDelete
+OCRDDeleteWithDeviceId
+OCRDDiscover
+OCRDPublish
+OCRDPublishWithDeviceId
