@@ -1,0 +1,9 @@
+env = Environment()
+
+env.Append(LIBPATH=['/usr/local/lib'])
+env.Append(LIBS=['hiredis'])
+env.Append(CPPPATH=['/usr/local/include/hiredis'])
+env.Append(CPPDEFINES=['REDIS_DB_TEST_MODE_ON'])
+env.Append(CCFLAGS =['-Wall', '-Werror'])
+
+env.Program('redis-db.cpp')
