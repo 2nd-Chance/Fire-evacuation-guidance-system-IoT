@@ -9,7 +9,8 @@
 
 namespace model
 {
-	class RoomMap : public MyMap<std::uint32_t, std::shared_ptr<model::Room>>
+	class RoomMap \
+		: public MyMap<std::uint32_t, std::shared_ptr<model::Room>>
 	{
 	public:
 

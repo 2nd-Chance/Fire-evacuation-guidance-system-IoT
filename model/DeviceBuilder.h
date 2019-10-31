@@ -14,7 +14,8 @@ namespace model
 		using RoomIdType = Device::RoomIdType;
 
 		DeviceBuilder &setUuid(UuidType uuid);
-		DeviceBuilder &setDeviceClass(std::shared_ptr<DeviceClass> deviceClass);
+		DeviceBuilder &setDeviceClass(std::shared_ptr<DeviceClass> \
+			deviceClass);
 		DeviceBuilder &setBluetoothMac(BtMacType bluetoothMac);
 		DeviceBuilder &setRoomId(RoomIdType roomId);
 		std::shared_ptr<StaticDevice> buildStatic(void);

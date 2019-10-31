@@ -42,13 +42,15 @@ namespace model
 	}
 
 	template<typename K, typename V>
-	inline std::shared_ptr<std::unordered_map<K, V>> MyMap<K, V>::getMap(void)
+	inline std::shared_ptr<std::unordered_map<K, V>> MyMap<K, V>:: \
+		getMap(void)
 	{
 		return this->map;
 	}
 	
 	template<typename K, typename V>
-	inline void MyMap<K, V>::setMap(std::shared_ptr<std::unordered_map<K, V>> map)
+	inline void MyMap<K, V>::setMap(
+		std::shared_ptr<std::unordered_map<K, V>> map)
 	{
 		this->map = map;
 	}
@@ -56,7 +58,8 @@ namespace model
 	template<typename K, typename V>
 	inline bool MyMap<K, V>::add(K key, V value)
 	{
-		auto insertPair = this->getMap()->insert(std::make_pair(key, value));
+		auto insertPair = this->getMap()->insert( \
+			std::make_pair(key, value));
 		return insertPair.second;
 	}
 

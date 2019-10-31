@@ -18,7 +18,8 @@ namespace model
 		return this->deviceClass;
 	}
 	
-	DeviceBuilder &DeviceBuilder::setDeviceClass(std::shared_ptr<DeviceClass> deviceClass)
+	DeviceBuilder &DeviceBuilder::setDeviceClass(
+		std::shared_ptr<DeviceClass> deviceClass)
 	{
 		this->deviceClass = deviceClass;
 		return *this;

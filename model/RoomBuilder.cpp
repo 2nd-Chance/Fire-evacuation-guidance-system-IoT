@@ -70,35 +70,41 @@ namespace model
 		return *this;
 	}
 	
-	std::shared_ptr<RoomBuilder::StaticDeviceListType> RoomBuilder::getStaticDevices(void)
+	std::shared_ptr<RoomBuilder::StaticDeviceListType> RoomBuilder:: \
+		getStaticDevices(void)
 	{
 		return this->staticDevices;
 	}
 	
-	RoomBuilder &RoomBuilder::setStaticDevices(std::shared_ptr<StaticDeviceListType> devices)
+	RoomBuilder &RoomBuilder::setStaticDevices(
+		std::shared_ptr<StaticDeviceListType> devices)
 	{
 		this->staticDevices = devices;
 		return *this;
 	}
 
-	RoomBuilder &RoomBuilder::addStaticDevice(std::shared_ptr<StaticDevice> device)
+	RoomBuilder &RoomBuilder::addStaticDevice(
+		std::shared_ptr<StaticDevice> device)
 	{
 		this->getStaticDevices()->add(device->getUuid());
 		return *this;
 	}
 	
-	std::shared_ptr<RoomBuilder::DynamicDeviceListType> RoomBuilder::getDynamicDevices(void)
+	std::shared_ptr<RoomBuilder::DynamicDeviceListType> RoomBuilder:: \
+		getDynamicDevices(void)
 	{
 		return this->dynamicDevices;
 	}
 
-	RoomBuilder &RoomBuilder::setDynamicDevices(std::shared_ptr<DynamicDeviceListType> devices)
+	RoomBuilder &RoomBuilder::setDynamicDevices(
+		std::shared_ptr<DynamicDeviceListType> devices)
 	{
 		this->dynamicDevices = devices;
 		return *this;
 	}
 	
-	RoomBuilder &RoomBuilder::addDynamicDevice(std::shared_ptr<DynamicDevice> device)
+	RoomBuilder &RoomBuilder::addDynamicDevice(
+		std::shared_ptr<DynamicDevice> device)
 	{
 		this->getDynamicDevices()->add(device->getUuid());
 		return *this;

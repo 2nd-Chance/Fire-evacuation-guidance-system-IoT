@@ -49,7 +49,8 @@ namespace model
 		return this->sensorType;
 	}
 	
-	model::DeviceClass2Builder & DeviceClass2Builder::setSensorType(const std::string sensorType)
+	model::DeviceClass2Builder & DeviceClass2Builder::setSensorType(
+		const std::string &sensorType)
 	{
 		this->sensorType = sensorType;
 		return *this;
@@ -60,7 +61,8 @@ namespace model
 		return this->sensorValue;
 	}
 	
-	model::DeviceClass2Builder & DeviceClass2Builder::setSensorValue(const std::string sensorValue)
+	model::DeviceClass2Builder & DeviceClass2Builder::setSensorValue(
+		const std::string &sensorValue)
 	{
 		this->sensorValue = sensorValue;
 		return *this;

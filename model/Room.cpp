@@ -6,9 +6,11 @@ namespace model
 {
 	Room::Room(IdType id) : Room(id, std::make_shared<Location>()) {}
 
-	Room::Room(IdType id, std::shared_ptr<Location> location) : Room(id, location, false, true) {}
+	Room::Room(IdType id, std::shared_ptr<Location> location) \
+		: Room(id, location, false, true) {}
 
-	Room::Room(IdType id, std::shared_ptr<Location> location, bool alertState, bool aliveState)
+	Room::Room(IdType id, std::shared_ptr<Location> location, 
+		bool alertState, bool aliveState)
 	{
 		this->setId(id);
 		this->setLocation(location);
@@ -46,18 +48,24 @@ namespace model
 	std::shared_ptr<Room> Room::parse(JsonType &json)
 	{
 		IdType id = json[Room::getJsonKey(JsonEnum::ID)];
-		std::shared_ptr<Location> location =
-			model::Location::parse(json[Room::getJsonKey(JsonEnum::LOCATION)]);
-		bool alertState = json[Room::getJsonKey(JsonEnum::ALERT_STATE)] != 0;
-		bool aliveState = json[Room::getJsonKey(JsonEnum::ALIVE_STATE)] != 0;
-		std::shared_ptr<LinkListType> links =
-			LinkListType::parse(json[Room::getJsonKey(JsonEnum::LINKS)]);
-		std::shared_ptr<StaticDeviceListType> staticDevices =
-			StaticDeviceListType::parse(json[Room::getJsonKey(JsonEnum::STATIC_DEVICES)]);
-		std::shared_ptr<DynamicDeviceListType> dynamicDevices =
-			DynamicDeviceListType::parse(json[Room::getJsonKey(JsonEnum::DYNAMIC_DEVICES)]);
+		std::shared_ptr<Location> location \
+			= model::Location::parse(
+				json[Room::getJsonKey(JsonEnum::LOCATION)]);
+		bool alertState \
+			= json[Room::getJsonKey(JsonEnum::ALERT_STATE)] != 0;
+		bool aliveState \
+			= json[Room::getJsonKey(JsonEnum::ALIVE_STATE)] != 0;
+		std::shared_ptr<LinkListType> links \
+			= LinkListType::parse(json[Room::getJsonKey(JsonEnum::LINKS)]);
+		std::shared_ptr<StaticDeviceListType> staticDevices \
+			= StaticDeviceListType::parse(
+				json[Room::getJsonKey(JsonEnum::STATIC_DEVICES)]);
+		std::shared_ptr<DynamicDeviceListType> dynamicDevices \
+			= DynamicDeviceListType::parse(
+				json[Room::getJsonKey(JsonEnum::DYNAMIC_DEVICES)]);
 
-		auto room = std::make_shared<Room>(id, location, alertState, aliveState);
+		auto room = std::make_shared<Room>(
+			id, location, alertState, aliveState);
 		room->setLinks(links);
 		room->setStaticDevices(staticDevices);
 		room->setDynamicDevices(dynamicDevices);
@@ -119,7 +127,8 @@ namespace model
 		return this->staticDevices;
 	}
 
-	void Room::setStaticDevices(std::shared_ptr<StaticDeviceListType> devices)
+	void Room::setStaticDevices(
+		std::shared_ptr<StaticDeviceListType> devices)
 	{
 		this->staticDevices = devices;
 	}
@@ -129,7 +138,8 @@ namespace model
 		return this->dynamicDevices;
 	}
 
-	void Room::setDynamicDevices(std::shared_ptr<DynamicDeviceListType> devices)
+	void Room::setDynamicDevices(
+		std::shared_ptr<DynamicDeviceListType> devices)
 	{
 		this->dynamicDevices = devices;
 	}
@@ -138,12 +148,18 @@ namespace model
 	{
 		JsonType json = JsonType::object();
 		json[Room::getJsonKey(JsonEnum::ID)] = this->getId();
-		json[Room::getJsonKey(JsonEnum::LOCATION)] = this->getLocation()->toJson();
-		json[Room::getJsonKey(JsonEnum::ALERT_STATE)] = static_cast<int>(this->getAlertState());
-		json[Room::getJsonKey(JsonEnum::ALIVE_STATE)] = static_cast<int>(this->getAliveState());
-		json[Room::getJsonKey(JsonEnum::LINKS)] = this->getLinks()->toJson();
-		json[Room::getJsonKey(JsonEnum::STATIC_DEVICES)] = this->getStaticDevices()->toJson();
-		json[Room::getJsonKey(JsonEnum::DYNAMIC_DEVICES)] = this->getDynamicDevices()->toJson();
+		json[Room::getJsonKey(JsonEnum::LOCATION)] \
+			= this->getLocation()->toJson();
+		json[Room::getJsonKey(JsonEnum::ALERT_STATE)] \
+			= static_cast<int>(this->getAlertState());
+		json[Room::getJsonKey(JsonEnum::ALIVE_STATE)] \
+			= static_cast<int>(this->getAliveState());
+		json[Room::getJsonKey(JsonEnum::LINKS)] \
+			= this->getLinks()->toJson();
+		json[Room::getJsonKey(JsonEnum::STATIC_DEVICES)] \
+			= this->getStaticDevices()->toJson();
+		json[Room::getJsonKey(JsonEnum::DYNAMIC_DEVICES)] \
+			= this->getDynamicDevices()->toJson();
 		return json;
 	}
 }

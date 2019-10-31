@@ -31,8 +31,6 @@ namespace model
 	template<typename T>
 	inline std::shared_ptr<DeviceMap<T>> DeviceMap<T>::parse(JsonType json)
 	{
-		//@ToDo: map may not be necessary for json (in case compaction is needed)
-		
 		auto deviceMap = std::make_shared<DeviceMap<T>>();
 		for (const auto &element : json)
 		{

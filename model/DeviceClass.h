@@ -54,16 +54,20 @@ namespace model
 	{
 	public:
 		DeviceClass2(void);
-		DeviceClass2(const std::string sensorType, const std::string sensorValue);
+		DeviceClass2(const std::string &sensorType, 
+			const std::string &sensorValue);
 
-		enum class JsonEnum { CLASS_ID, ALERT_STATE, ALIVE_STATE, SENSOR_TYPE, SENSOR_VALUE };
+		enum class JsonEnum
+		{
+			CLASS_ID, ALERT_STATE, ALIVE_STATE, SENSOR_TYPE, SENSOR_VALUE
+		};
 		static std::string getJsonKey(JsonEnum jsonEnum);
 		static std::shared_ptr<DeviceClass2> parse(JsonType json);
 
 		std::string getSensorType(void);
-		void setSensorType(const std::string sensorType);
+		void setSensorType(const std::string &sensorType);
 		std::string getSensorValue(void);
-		void setSensorValue(const std::string sensorValue);
+		void setSensorValue(const std::string &sensorValue);
 		JsonType toJson(void) override;
 
 	private:
@@ -75,9 +79,13 @@ namespace model
 	{
 	public:
 		DeviceClass1(void);
-		DeviceClass1(const std::string sensorType, const std::string sensorValue);
+		DeviceClass1(const std::string &sensorType, 
+			const std::string &sensorValue);
 
-		enum class JsonEnum { CLASS_ID, ALERT_STATE, ALIVE_STATE, SENSOR_TYPE, SENSOR_VALUE };
+		enum class JsonEnum
+		{
+			CLASS_ID, ALERT_STATE, ALIVE_STATE, SENSOR_TYPE, SENSOR_VALUE
+		};
 		static std::string getJsonKey(JsonEnum jsonEnum);
 		static std::shared_ptr<DeviceClass1> parse(JsonType json);
 		

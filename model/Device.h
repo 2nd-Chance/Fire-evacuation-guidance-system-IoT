@@ -21,7 +21,10 @@ namespace model
 
 		UuidType getUuid(void);
 
-		enum class JsonEnum { UUID, DEVICE_CLASS, BLUETOOTH_MAC, ROOM_ID };
+		enum class JsonEnum
+		{
+			UUID, DEVICE_CLASS, BLUETOOTH_MAC, ROOM_ID
+		};
 		static std::string getJsonKey(JsonEnum jsonEnum);
 		static std::shared_ptr<Device> parse(JsonEnum json);
 
@@ -36,8 +39,10 @@ namespace model
 
 	protected:
 		Device(UuidType uuid, std::shared_ptr<DeviceClass> deviceClass);
-		Device(UuidType uuid, std::shared_ptr<DeviceClass> deviceClass, BtMacType bluetoothMac);
-		Device(UuidType uuid, std::shared_ptr<DeviceClass> deviceClass, BtMacType bluetoothMac, RoomIdType roomId);
+		Device(UuidType uuid, std::shared_ptr<DeviceClass> deviceClass,
+			BtMacType bluetoothMac);
+		Device(UuidType uuid, std::shared_ptr<DeviceClass> deviceClass, 
+			BtMacType bluetoothMac, RoomIdType roomId);
 
 	private:
 		UuidType uuid;
@@ -49,9 +54,14 @@ namespace model
 	class DynamicDevice : public Device
 	{
 	public:
-		DynamicDevice(UuidType uuid, std::shared_ptr<DeviceClass> deviceClass) : Device(uuid, deviceClass) {}
-		DynamicDevice(UuidType uuid, std::shared_ptr<DeviceClass> deviceClass, BtMacType bluetoothMac) : Device(uuid, deviceClass, bluetoothMac) {}
-		DynamicDevice(UuidType uuid, std::shared_ptr<DeviceClass> deviceClass, BtMacType bluetoothMac, RoomIdType roomId) : Device(uuid, deviceClass, bluetoothMac, roomId) {}
+		DynamicDevice(UuidType uuid, std::shared_ptr<DeviceClass> \
+			deviceClass) : Device(uuid, deviceClass) {}
+		DynamicDevice(UuidType uuid, std::shared_ptr<DeviceClass> \
+			deviceClass, BtMacType bluetoothMac) \
+			: Device(uuid, deviceClass, bluetoothMac) {}
+		DynamicDevice(UuidType uuid, std::shared_ptr<DeviceClass> \
+			deviceClass, BtMacType bluetoothMac, RoomIdType roomId) \
+			: Device(uuid, deviceClass, bluetoothMac, roomId) {}
 
 		static std::shared_ptr<DynamicDevice> parse(JsonType json);
 	};
@@ -59,9 +69,14 @@ namespace model
 	class StaticDevice : public Device
 	{
 	public:
-		StaticDevice(UuidType uuid, std::shared_ptr<DeviceClass> deviceClass) : Device(uuid, deviceClass) {}
-		StaticDevice(UuidType uuid, std::shared_ptr<DeviceClass> deviceClass, BtMacType bluetoothMac) : Device(uuid, deviceClass, bluetoothMac) {}
-		StaticDevice(UuidType uuid, std::shared_ptr<DeviceClass> deviceClass, BtMacType bluetoothMac, RoomIdType roomId) : Device(uuid, deviceClass, bluetoothMac, roomId) {}
+		StaticDevice(UuidType uuid, std::shared_ptr<DeviceClass> \
+			deviceClass) : Device(uuid, deviceClass) {}
+		StaticDevice(UuidType uuid, std::shared_ptr<DeviceClass> \
+			deviceClass, BtMacType bluetoothMac) \
+			: Device(uuid, deviceClass, bluetoothMac) {}
+		StaticDevice(UuidType uuid, std::shared_ptr<DeviceClass> \
+			deviceClass, BtMacType bluetoothMac, RoomIdType roomId) \
+			: Device(uuid, deviceClass, bluetoothMac, roomId) {}
 	
 		static std::shared_ptr<StaticDevice> parse(JsonType json);
 	};

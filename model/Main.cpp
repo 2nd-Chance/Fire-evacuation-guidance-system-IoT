@@ -6,12 +6,12 @@
 #include <memory>
 #include <string>
 
+#include "main.h"
 #include "Room.h"
 #include "RoomBuilder.h"
 #include "LocationBuilder.h"
 #include "DeviceBuilder.h"
 #include "DeviceClassBuilder.h"
-#include "main.h"
 
 int main(void)
 {
@@ -31,7 +31,8 @@ int main(void)
 }
 
 std::string testCreationWithBuilder(void) {
-	std::shared_ptr<model::StaticDevice> class3Device1 = model::DeviceBuilder()
+	std::shared_ptr<model::StaticDevice> class3Device1 \
+		= model::DeviceBuilder()
 		.setUuid("10")
 		.setDeviceClass(model::DeviceClass3Builder()
 			.build()
@@ -40,7 +41,8 @@ std::string testCreationWithBuilder(void) {
 		.setRoomId(11)
 		.buildStatic();
 
-	std::shared_ptr<model::StaticDevice> class2Device2 = model::DeviceBuilder()
+	std::shared_ptr<model::StaticDevice> class2Device2 \
+		= model::DeviceBuilder()
 		.setUuid("20")
 		.setDeviceClass(model::DeviceClass2Builder()
 			.setSensorType("type")
@@ -51,7 +53,8 @@ std::string testCreationWithBuilder(void) {
 		.setRoomId(22)
 		.buildStatic();
 
-	std::shared_ptr<model::DynamicDevice> class1Device3 = model::DeviceBuilder()
+	std::shared_ptr<model::DynamicDevice> class1Device3 \
+		= model::DeviceBuilder()
 		.setUuid("30")
 		.setDeviceClass(model::DeviceClass1Builder()
 			.setSensorType("type2")
@@ -84,17 +87,22 @@ std::string testCreationWithBuilder(void) {
 
 std::string testCreationWithoutBuilder(void) {
 	auto deviceClass3 = std::make_shared<model::DeviceClass3>();
-	auto device1 = std::make_shared<model::StaticDevice>("10", deviceClass3);
+	auto device1 = std::make_shared<model::StaticDevice>(
+		"10", deviceClass3);
 	device1->setBluetoothMac("aa:bb:cc:dd:ee:ff");
 	device1->setRoomId(11);
 
-	auto deviceClass2 = std::make_shared<model::DeviceClass2>("type", "value");
-	auto device2 = std::make_shared<model::StaticDevice>("20", deviceClass2);
+	auto deviceClass2 = std::make_shared<model::DeviceClass2>(
+		"type", "value");
+	auto device2 = std::make_shared<model::StaticDevice>(
+		"20", deviceClass2);
 	device2->setBluetoothMac("ff:ee:dd:cc:bb:aa");
 	device2->setRoomId(22);
 
-	auto deviceClass1 = std::make_shared<model::DeviceClass1>("type2", "value2");
-	auto device3 = std::make_shared<model::DynamicDevice>("30", deviceClass1);
+	auto deviceClass1 = std::make_shared<model::DeviceClass1>(
+		"type2", "value2");
+	auto device3 = std::make_shared<model::DynamicDevice>(
+		"30", deviceClass1);
 	device3->setBluetoothMac("cc:cc:cc:cc:cc:cc");
 	device3->setRoomId(33);
 
