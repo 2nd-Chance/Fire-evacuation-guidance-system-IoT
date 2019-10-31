@@ -129,7 +129,7 @@ namespace model
 	
 	DeviceClass2::DeviceClass2(void) : DeviceClass2("", "") {}
 
-	DeviceClass2::DeviceClass2(std::string sensorType, std::string sensorValue) : DeviceClass3()
+	DeviceClass2::DeviceClass2(const std::string sensorType, const std::string sensorValue) : DeviceClass3()
 	{
 		this->setClassId(2);
 		this->setSensorType(sensorType);
@@ -173,7 +173,7 @@ namespace model
 		return this->sensorType;
 	}
 	
-	void DeviceClass2::setSensorType(std::string sensorType)
+	void DeviceClass2::setSensorType(const std::string sensorType)
 	{
 		this->sensorType = sensorType;
 	}
@@ -183,7 +183,7 @@ namespace model
 		return this->sensorValue;
 	}
 
-	void DeviceClass2::setSensorValue(std::string sensorValue)
+	void DeviceClass2::setSensorValue(const std::string sensorValue)
 	{
 		this->sensorValue = sensorValue;
 	}
@@ -202,7 +202,7 @@ namespace model
 
 	DeviceClass1::DeviceClass1(void) : DeviceClass1("", "") {}
 
-	DeviceClass1::DeviceClass1(std::string sensorType, std::string sensorValue) : DeviceClass2(sensorType, sensorValue)
+	DeviceClass1::DeviceClass1(const std::string sensorType, const std::string sensorValue) : DeviceClass2(sensorType, sensorValue)
 	{
 		this->setClassId(1);
 	}

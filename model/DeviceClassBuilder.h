@@ -35,8 +35,8 @@ namespace model
 	class DeviceClass2Builder : public DeviceClass3Builder
 	{
 	public:
-		DeviceClass2Builder &setSensorType(std::string sensorType);
-		DeviceClass2Builder &setSensorValue(std::string sensorValue);
+		DeviceClass2Builder &setSensorType(const std::string sensorType);
+		DeviceClass2Builder &setSensorValue(const std::string sensorValue);
 		std::shared_ptr<DeviceClass> build(void) override;
 
 	protected:
