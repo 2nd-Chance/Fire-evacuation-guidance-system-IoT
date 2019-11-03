@@ -91,11 +91,11 @@ void Util::CheckHeaderOptionsInfo (const string type,
 
 			try {
 				optionData = new char[dataLength];
-			} catch (bad_alloc exception) {
+				snprintf(optionData, dataLength, "%s", it->getOptionData().c_str());
+			} catch (bad_alloc& exception) {
 				cerr << "Bad allocation error" << exception.what() << endl;
 				return ;
 			}
-			strncpy(optionData, it->getOptionData().c_str(), dataLength);
 
 			format = optionData[0] * 256 + optionData[1];
 			version = optionData[0] * 256;
