@@ -73,7 +73,7 @@ OCConnectivityType Util::CheckResourceInfo(shared_ptr<OCResource> resource)
 	return transportTypeToUse;
 }
 
-void Util::CheckHeaderOptionsInfo (string type,
+void Util::CheckHeaderOptionsInfo (const string type,
 		const HeaderOptions headerOptions)
 {
 	cout << "[" << type << " HEADER OPTION] "<< endl;
@@ -86,15 +86,23 @@ void Util::CheckHeaderOptionsInfo (string type,
 		for (auto it = optionsBegin; it != optionsEnd; ++it) {
 			uint16_t optionID = it->getOptionID();
 			size_t dataLength = it->getOptionData().length();
-			char *optionData = new char[dataLength];
-			const int format = optionData[0] * 256 + optionData[1];
-			const int version = optionData[0] * 256;
+			char *optionData;
+			int format, version;
 
+			try {
+				optionData = new char[dataLength];
+			} catch (bad_alloc exception) {
+				cerr << "Bad allocation error" << exception.what() << endl;
+				return ;
+			}
 			strncpy(optionData, it->getOptionData().c_str(), dataLength);
 
+			format = optionData[0] * 256 + optionData[1];
+			version = optionData[0] * 256;
+
 			if(optionID == COAP_OPTION_CONTENT_FORMAT) {
-				cout << "\tServer format in " << type << " response:" << format << endl; }
-			else if(optionID == CA_OPTION_CONTENT_VERSION) {
+				cout << "\tServer format in " << type << " response:" << format << endl;
+			} else if(optionID == CA_OPTION_CONTENT_VERSION) {
 				cout << "\tServer version in " << type << " response:" << version << endl;
 			} // end of if
 

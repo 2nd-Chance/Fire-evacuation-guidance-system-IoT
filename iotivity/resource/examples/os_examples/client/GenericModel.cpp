@@ -10,9 +10,8 @@ using namespace std;
 
 
 GenericModel::GenericModel(void)
-{
-	m_value = "{}";
-}
+	:m_value("{}")
+{}
 
 void GenericModel::GetRepresentation(shared_ptr<OCResource> resource,
 		GetCallback callback)
