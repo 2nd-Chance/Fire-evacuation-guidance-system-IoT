@@ -7,12 +7,12 @@ namespace model
 		return this->uuid;
 	}
 	
-	DeviceBuilder &model::DeviceBuilder::setUuid(UuidType uuid)
+	DeviceBuilder &DeviceBuilder::setUuid(UuidType uuid)
 	{
 		this->uuid = uuid;
 		return *this;
 	}
-	
+
 	std::shared_ptr<DeviceClass> DeviceBuilder::getDeviceClass(void)
 	{
 		return this->deviceClass;

@@ -24,16 +24,36 @@ namespace model
 	{
 		switch (jsonEnum)
 		{
-		case model::Device::JsonEnum::UUID:
+		case JsonEnum::UUID:
 			return "id";
-		case model::Device::JsonEnum::DEVICE_CLASS:
+		case JsonEnum::DEVICE_TYPE:
+			return "dt";
+		case JsonEnum::DEVICE_CLASS:
 			return "cl";
-		case model::Device::JsonEnum::BLUETOOTH_MAC:
+		case JsonEnum::BLUETOOTH_MAC:
 			return "bm";
-		case model::Device::JsonEnum::ROOM_ID:
+		case JsonEnum::ROOM_ID:
 			return "rm";
 		default:
 			return "?";
+		}
+	}
+
+	std::shared_ptr<Device> Device::parse(JsonType json)
+	{
+		DeviceTypeType deviceType = json[Device::getJsonKey(JsonEnum::DEVICE_TYPE)];
+
+		if (deviceType == "s")
+		{
+			return StaticDevice::parse(json);
+		}
+		else if (deviceType == "d")
+		{
+			return DynamicDevice::parse(json);
+		}
+		else
+		{
+			return nullptr;
 		}
 	}
 
@@ -45,6 +65,16 @@ namespace model
 	void Device::setUuid(UuidType uuid)
 	{
 		this->uuid = uuid;
+	}
+
+	Device::DeviceTypeType Device::getDeviceType(void)
+	{
+		return this->deviceType;
+	}
+
+	void Device::setDeviceType(DeviceTypeType deviceType)
+	{
+		this->deviceType = deviceType;
 	}
 
 	std::shared_ptr<DeviceClass> Device::getDeviceClass(void)
@@ -85,26 +115,17 @@ namespace model
 	Device::JsonType Device::toJson(void)
 	{
 		JsonType json = JsonType::object();
-		json["id"] = this->getUuid();
-		json["cl"] = this->getDeviceClass()->toJson();
-		json["bm"] = this->getBluetoothMac();
-		json["rm"] = this->getRoomId();
+		json[Device::getJsonKey(JsonEnum::UUID)] \
+			= this->getUuid();
+		json[Device::getJsonKey(JsonEnum::DEVICE_TYPE)] \
+			= this->getDeviceType();
+		json[Device::getJsonKey(JsonEnum::DEVICE_CLASS)] \
+			= this->getDeviceClass()->toJson();
+		json[Device::getJsonKey(JsonEnum::BLUETOOTH_MAC)] \
+			= this->getBluetoothMac();
+		json[Device::getJsonKey(JsonEnum::ROOM_ID)] \
+			= this->getRoomId();
 		return json;
-	}
-	
-	std::shared_ptr<DynamicDevice> DynamicDevice::parse(JsonType json)
-	{
-		UuidType uuid = json[Device::getJsonKey(JsonEnum::UUID)];
-		std::shared_ptr<DeviceClass> deviceClass \
-			= DeviceClass::parse(
-				json[Device::getJsonKey(JsonEnum::DEVICE_CLASS)]);
-		BtMacType bluetoothMac \
-			= json[Device::getJsonKey(JsonEnum::BLUETOOTH_MAC)];
-		RoomIdType roomId \
-			= json[Device::getJsonKey(JsonEnum::ROOM_ID)];
-
-		return std::make_shared<DynamicDevice>(
-			uuid, deviceClass, bluetoothMac, roomId);
 	}
 	
 	std::shared_ptr<StaticDevice> StaticDevice::parse(JsonType json)
@@ -119,6 +140,21 @@ namespace model
 			= json[Device::getJsonKey(JsonEnum::ROOM_ID)];
 
 		return std::make_shared<StaticDevice>(
+			uuid, deviceClass, bluetoothMac, roomId);
+	}
+
+	std::shared_ptr<DynamicDevice> DynamicDevice::parse(JsonType json)
+	{
+		UuidType uuid = json[Device::getJsonKey(JsonEnum::UUID)];
+		std::shared_ptr<DeviceClass> deviceClass \
+			= DeviceClass::parse(
+				json[Device::getJsonKey(JsonEnum::DEVICE_CLASS)]);
+		BtMacType bluetoothMac \
+			= json[Device::getJsonKey(JsonEnum::BLUETOOTH_MAC)];
+		RoomIdType roomId \
+			= json[Device::getJsonKey(JsonEnum::ROOM_ID)];
+
+		return std::make_shared<DynamicDevice>(
 			uuid, deviceClass, bluetoothMac, roomId);
 	}
 }
