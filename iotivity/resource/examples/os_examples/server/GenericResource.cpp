@@ -154,7 +154,7 @@ OCEntityHandlerResult GenericResource::EntityHandlerCB(shared_ptr<OCResourceRequ
 
 void* GenericResource::ChangeGenericRepresentation(void *param)
 {
-	GenericResource *genericResource = (GenericResource *)param;
+	GenericResource* genericResource = static_cast<GenericResource*>(param);
 
 	while(1) {
 		sleep(1);

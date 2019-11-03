@@ -53,7 +53,7 @@ string GenericControl::GetValue(void)
 	return string("{value:1}");
 }
 
-void GenericControl::Control(string value)
+void GenericControl::Control(const string& value)
 {
 	if(value == "{value:1}")
 	{

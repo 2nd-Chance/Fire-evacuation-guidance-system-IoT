@@ -8,7 +8,7 @@ public:
 
 	string GetValue(void);
 
-	void Control(string value);
+	void Control(const string& value);
 };
 
 #endif
