@@ -20,22 +20,15 @@
 
 Import('examples_env')
 
-# // [20191008 hyoungjoon.lee] added path(resource/c_common/ocrandom/include) to fix compile error by 1.3.1
+
 examples_env.AppendUnique(CPPPATH=[
-    '#/resource/csdk/connectivity/api',
-    '#/resource/csdk/security/include/experimental',
-    '#/resource/csdk/security/provisioning/include',
-    '#/resource/csdk/security/provisioning/include/internal',
-    '#/resource/c_common/ocrandom/include'
+	Dir('.').srcnode().path
 ])
 
-# // [20191008 hyoungjoon.lee] added build option - SECURED
-if(examples_env.get('SECURED') == '1'):
-	examples_env.AppendUnique(LIBS=['ocprovision'])
-# // [20191008 hyoungjoon.lee] added build option - SECURED
+client_files = ['Client.cpp', 'GenericModel.cpp', 'Util.cpp']
+output = examples_env.Program(client_files)
 
-examples_env.SConscript('client/SConscript', exports='examples_env')
-# examples_env.SConscript('ocf_client/SConscript', exports='examples_env')
-# examples_env.SConscript('ocf_server_light/SConscript', exports='examples_env')
-# examples_env.SConscript('ocf_server_sensor/SConscript', exports='examples_env')
+examples_env.Alias("output", output)
+examples_env.AppendTarget('output')
+examples_env.Alias("install", output)
 
