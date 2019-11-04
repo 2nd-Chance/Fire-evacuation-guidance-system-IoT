@@ -182,6 +182,8 @@ namespace model
 		auto class2 = std::make_shared<DeviceClass2>();
 		class2->setAlertState(alertState);
 		class2->setAliveState(aliveState);
+		class2->setSensorType(sensorType);
+		class2->setSensorValue(sensorValue);
 		return class2;
 	}
 
@@ -266,6 +268,8 @@ namespace model
 		auto class1 = std::make_shared<DeviceClass1>();
 		class1->setAlertState(alertState);
 		class1->setAliveState(aliveState);
+		class1->setSensorType(sensorType);
+		class1->setSensorValue(sensorValue);
 		return class1;
 	}
 

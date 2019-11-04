@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Room.h"
+
 int main(void);
 
 std::string testCreationWithBuilder(void);
