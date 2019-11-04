@@ -11,10 +11,10 @@ namespace PH = std::placeholders;
 
 
 #define RESOURCE_URI		"/SpeechTTSResURI"
-#define RESOURCE_TYPE_NAME	"oic.r.speech.tts"
+#define RESOURCE_TYPE_NAME	"oic.d.ams"
 #define RESOURCE_INTERFACE	"oic.if.a"
 #define RESOURCE_PROPERTY	(OC_DISCOVERABLE | OC_OBSERVABLE | OC_SECURE)
-#define RESOURCE_KEY		"value"
+#define RESOURCE_KEY		"utterance"
 
 
 GenericResource::GenericResource(void)

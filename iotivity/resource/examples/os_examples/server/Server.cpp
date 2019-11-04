@@ -31,7 +31,7 @@ using namespace std;
 #include "GenericResource.h"
 
 
-#define SVR_DB_FILE_NAME			"./oic_svr_db_server.dat"
+#define SVR_DB_FILE_NAME		"./oic_svr_db_server.dat"
 #define INTROSPECTION_FILE_NAME		"client_introspection.dat"
 
 
@@ -87,7 +87,7 @@ static OCStackResult _set_device_info(void)
 {
 	/* Must equal to client spec*/
 	OCStackResult result = OC_STACK_ERROR;
-	string device_type = "oic.r.speech.tts";
+	string device_type = "oic.d.ams";
 	string device_name = "OCF IoTivity General Server";
 	string spec_version = "ocf.1.3.1";
 	vector<string> data_model_versions = {"ocf.res.1.3.1"};
