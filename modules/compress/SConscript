@@ -1,0 +1,8 @@
+env = Environment()
+
+env.Append(LIBPATH=['/usr/local/lib'])
+env.Append(LIBS=['z'])
+env.Append(CPPDEFINES=['COMPRESS_TEST_MODE_ON'])
+env.Append(CCFLAGS =['-Wall', '-Werror', '-g'])
+
+env.Program(['compress.cpp'])

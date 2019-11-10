@@ -25,7 +25,11 @@ examples_env.AppendUnique(CPPPATH=[
 	Dir('.').srcnode().path
 ])
 
-client_files = ['Client.cpp', 'GenericModel.cpp', 'Util.cpp']
+client_files = [
+	'Client.cpp',
+	'GenericModel.cpp',
+	'Util.cpp',
+]
 output = examples_env.Program(client_files)
 
 examples_env.Alias("output", output)

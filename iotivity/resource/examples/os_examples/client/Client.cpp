@@ -232,15 +232,24 @@ void onObserve(const HeaderOptions& /*headerOptions*/, const OCRepresentation& r
 			cout << endl;
 
 			if (_registered_resources[RESOURCE_URI]) {
+				static int test = 0;
 				stringstream value_stream;
-				static int idx = 0;
-				// string value = _generic_model.GetValue();
-				
-				value_stream << "{ value: " << idx++ << "}";
+				string post_value, uuid;
+				shared_ptr<OCResource> resource(_registered_resources[RESOURCE_URI]);
 
-				/*@TODO: DO SOMETHING IN THIS PLACE */
+				value_stream << resource->uniqueIdentifier();
+				uuid = value_stream.str();
+
+				value_stream.str(string()); /* reset the value stream */
+				value_stream.clear();
+				
+				value_stream << "{"
+				             << "\"value\":"<< test++ << ","
+							 << "\"UUID\":\""<< uuid.substr(0, uuid.find("/"))  << "\","
+							 <<"}";
+				post_value = value_stream.str();
 				_generic_model.PostRepresentation(_registered_resources[RESOURCE_URI],
-						RESOURCE_KEY, value_stream.str(), &onPost);
+						RESOURCE_KEY, post_value, &onPost);
 			}
 		} else {
 			if (eCode == OC_STACK_OK) {
