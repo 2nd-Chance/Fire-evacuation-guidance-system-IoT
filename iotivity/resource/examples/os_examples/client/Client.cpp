@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <mutex>
 #include <condition_variable>
+#include <sstream>
 
 using namespace OC;
 using namespace std;
@@ -231,10 +232,15 @@ void onObserve(const HeaderOptions& /*headerOptions*/, const OCRepresentation& r
 			cout << endl;
 
 			if (_registered_resources[RESOURCE_URI]) {
-				string value = _generic_model.GetValue();
-				cout << value << endl;
+				stringstream value_stream;
+				static int idx = 0;
+				// string value = _generic_model.GetValue();
+				
+				value_stream << "{ value: " << idx++ << "}";
 
 				/*@TODO: DO SOMETHING IN THIS PLACE */
+				_generic_model.PostRepresentation(_registered_resources[RESOURCE_URI],
+						RESOURCE_KEY, value_stream.str(), &onPost);
 			}
 		} else {
 			if (eCode == OC_STACK_OK) {

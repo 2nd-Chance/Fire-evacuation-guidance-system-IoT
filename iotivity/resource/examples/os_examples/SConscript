@@ -36,7 +36,3 @@ if(examples_env.get('SECURED') == '1'):
 
 examples_env.SConscript('client/SConscript', exports='examples_env')
 examples_env.SConscript('server/SConscript', exports='examples_env')
-# examples_env.SConscript('ocf_client/SConscript', exports='examples_env')
-# examples_env.SConscript('ocf_server_light/SConscript', exports='examples_env')
-# examples_env.SConscript('ocf_server_sensor/SConscript', exports='examples_env')
-

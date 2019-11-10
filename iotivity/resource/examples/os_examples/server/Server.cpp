@@ -87,7 +87,7 @@ static OCStackResult _set_device_info(void)
 {
 	/* Must equal to client spec*/
 	OCStackResult result = OC_STACK_ERROR;
-	string device_type = "oic.r.speech.tts";
+	string device_type = "oic.d.ams";
 	string device_name = "OCF IoTivity General Server";
 	string spec_version = "ocf.1.3.1";
 	vector<string> data_model_versions = {"ocf.res.1.3.1"};
