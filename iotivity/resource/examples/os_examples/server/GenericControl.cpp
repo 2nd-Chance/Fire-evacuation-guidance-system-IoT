@@ -45,12 +45,17 @@ GenericControl::GenericControl(void)
 	pinMode(LED_G, OUTPUT);
 	pinMode(LED_B, OUTPUT);
 
-	this->Control("{}");
+	this->Control("");
 }
 
 string GenericControl::GetValue(void)
 {
-	return string("{value:1}");
+	return m_value; 
+}
+
+void GenericControl::SetValue(const string& value)
+{
+	m_value = value;
 }
 
 void GenericControl::Control(const string& value)
