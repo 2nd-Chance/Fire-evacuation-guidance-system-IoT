@@ -15,9 +15,14 @@ Audio::Audio()
 
 Audio::Audio(const Audio& audio)
 {
-	std::cerr << "Warning) DO NOT USE COPY CONSTRUCTOR IN AUDIO MODULE" << std::endl;
+	driver = audio.driver;
+	mpg_handle = audio.mpg_handle;
+	buffer_size = audio.buffer_size;
+	buffer = new unsigned char[buffer_size];
 	if (buffer != NULL)
-		memcpy(buffer, audio.buffer, audio.buffer_size);
+		memcpy(buffer, audio.buffer, buffer_size);
+	dev = audio.dev;
+	should_kick_stop = audio.should_kick_stop;
 }
 
 void Audio::open(const std::string& file_name)
