@@ -9,6 +9,15 @@ Audio::Audio()
 	mpg_handle = mpg123_new(NULL, &err);
 	buffer_size = mpg123_outblock(mpg_handle);
 	buffer = new unsigned char[buffer_size];
+	dev = NULL;
+	should_kick_stop = false;
+}
+
+Audio::Audio(const Audio& audio)
+{
+	std::cerr << "Warning) DO NOT USE COPY CONSTRUCTOR IN AUDIO MODULE" << std::endl;
+	if (buffer != NULL)
+		memcpy(buffer, audio.buffer, audio.buffer_size);
 }
 
 void Audio::open(const std::string& file_name)
@@ -30,27 +39,18 @@ void Audio::open(const std::string& file_name)
 void Audio::play()
 {
 	size_t done;
-	int value = 0;
 	while (mpg123_read(mpg_handle, buffer, buffer_size, &done) == MPG123_OK) {
-		/*
-		//// HOW TO USE STOP ////
-		std::cout << value++ << std::endl;
-		sleep(1);
-		if (value > 25) {
-			this->stop();
-			std::cout << "stop" << std::endl;
+		if (should_kick_stop) {
+			should_kick_stop = false;
 			break;
 		}
-		*/
         ao_play(dev, (char *)buffer, done);
 	}
 }
 
 void Audio::stop()
 {
-	ao_close(dev);
-    mpg123_close(mpg_handle);
-	memset(buffer, 0, buffer_size);
+	should_kick_stop = true;
 }
 
 Audio::~Audio() 
@@ -64,12 +64,22 @@ Audio::~Audio()
 }
 
 #ifdef AUDIO_TEST_MODE_ON
+void counter(int seconds, std::shared_ptr<Audio> audio)
+{
+	while(seconds--) {
+		sleep(1);
+	}
+	audio.get()->stop();
+}
+
 int main(int argc, char *argv[])
 {
-	std::unique_ptr<Audio> audio(new Audio());
+	std::shared_ptr<Audio> audio(new Audio());
 
+	std::thread normal_thread(counter, 5, audio);
 	audio.get()->open("normal.mp3");
 	audio.get()->play();
+	normal_thread.join();
 	audio.get()->open("emergency.mp3");
 	audio.get()->play();
 
