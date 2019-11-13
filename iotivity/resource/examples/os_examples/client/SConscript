@@ -25,6 +25,10 @@ examples_env.AppendUnique(CPPPATH=[
 	Dir('.').srcnode().path
 ])
 
+examples_env.Append(LIBS=['devMgmt'])
+examples_env.Append(LIBPATH=['#/../model', '/usr/lib', '/usr/local/lib'])
+examples_env.Append(CPPDEFINES=['DEVMGMT_TEST_MODE_ON'])
+
 client_files = ['Client.cpp', 'GenericModel.cpp', 'Util.cpp']
 output = examples_env.Program(client_files)
 

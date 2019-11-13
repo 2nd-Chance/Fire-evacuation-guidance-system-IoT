@@ -54,3 +54,5 @@ dkms.conf
 
 modules/redis/redis-db
 modules/redis/.sconsign.dblite
+.vs/
+.idea/

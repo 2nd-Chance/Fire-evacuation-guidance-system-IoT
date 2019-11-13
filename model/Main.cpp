@@ -1,4 +1,4 @@
-#ifdef MODEL_TEST
+#ifdef MODEL_TEST_MODE_ON
 
 
 #include <iostream>

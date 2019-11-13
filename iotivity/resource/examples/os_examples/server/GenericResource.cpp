@@ -8,7 +8,7 @@ namespace PH = std::placeholders;
 
 #include "GenericControl.h"
 #include "GenericResource.h"
-
+#include "devMgmt/Device.h"
 
 #define RESOURCE_URI		"/SpeechTTSResURI"
 #define RESOURCE_TYPE_NAME	"oic.d.ams"
@@ -60,6 +60,12 @@ void GenericResource::Post(OCRepresentation rep)
 
 		if(rep.getValue(RESOURCE_KEY, value)) {
 			cout << "\tvalue: " << value << endl;
+
+#ifdef DEVMGMT_TEST_MODE_ON
+			auto jsonString = nlohmann::json::parse(value);
+			auto device = model::Device::parse(jsonString);
+			cout << "\tdevMgmt: " << device->toJson().dump() << endl;
+#endif
 
 			m_genericControl.Control(value);
 		} else {

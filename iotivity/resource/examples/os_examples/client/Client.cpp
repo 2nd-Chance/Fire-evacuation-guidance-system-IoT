@@ -19,6 +19,9 @@ using namespace std;
 
 #include "experimental/ocrandom.h"
 #include "OCProvisioningManager.hpp"
+#include "devMgmt/Device.h"
+#include "devMgmt/DeviceBuilder.h"
+#include "devMgmt/DeviceClassBuilder.h"
 
 #include "Util.h"
 #include "GenericModel.h"
@@ -235,8 +238,23 @@ void onObserve(const HeaderOptions& /*headerOptions*/, const OCRepresentation& r
 				stringstream value_stream;
 				static int idx = 0;
 				// string value = _generic_model.GetValue();
-				
+
+#ifdef DEVMGMT_TEST_MODE_ON
+				auto device = model::DeviceBuilder()
+					.setUuid("uuid" + to_string(idx))
+					.setRoomId(idx * 11)
+					.setDeviceClass(model::DeviceClass1Builder()
+						.setSensorType("type_" + to_string(idx))
+						.setSensorValue("value_" + to_string(idx))
+						.build()
+					)
+					.setBluetoothMac("" + to_string(idx))
+					.buildStatic();
+				idx++;
+				value_stream << device->toJson().dump();
+#else
 				value_stream << "{ value: " << idx++ << "}";
+#endif
 
 				/*@TODO: DO SOMETHING IN THIS PLACE */
 				_generic_model.PostRepresentation(_registered_resources[RESOURCE_URI],
