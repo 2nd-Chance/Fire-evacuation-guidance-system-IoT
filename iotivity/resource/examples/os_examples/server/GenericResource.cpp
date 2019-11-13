@@ -60,13 +60,20 @@ void GenericResource::Post(OCRepresentation rep)
 
 		if(rep.getValue(RESOURCE_KEY, value)) {
 			m_genericControl.SetValue(value);
-			//@TODO: Something to do... In this place....
 			cout << "\tvalue: " << value << endl;
 
 #ifdef DEVMGMT_TEST_MODE_ON
 			auto jsonString = nlohmann::json::parse(value);
 			auto device = model::Device::parse(jsonString);
-			cout << "\tdevMgmt: " << device->toJson().dump() << endl;
+			cout << "\t\tdev.uuid: " \
+				<< device->getUuid() << endl;
+			cout << "\t\tdev.btMac: " \
+				<< device->getBluetoothMac() << endl;
+			cout << "\t\tdev.devClass: " \
+				<< device->getDeviceClass()->getClassId() << endl;
+			cout << "\t\tdev.devType: " \
+				<< device->getDeviceType() << endl;
+			cout << "\t\tdev.json: " << device->toJson().dump() << endl;
 #endif
 
 			// m_genericControl.Control(value);

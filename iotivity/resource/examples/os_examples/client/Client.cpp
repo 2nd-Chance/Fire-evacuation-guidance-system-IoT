@@ -264,8 +264,8 @@ void onObserve(const HeaderOptions& /*headerOptions*/, const OCRepresentation& r
 				             << "\"value\":"<< test++ << ","
 							 << "\"UUID\":\""<< uuid.substr(0, uuid.find("/"))  << "\","
 							 <<"}";
-				post_value = value_stream.str();
 #endif
+				post_value = value_stream.str();
 				_generic_model.PostRepresentation(_registered_resources[RESOURCE_URI],
 						RESOURCE_KEY, post_value, &onPost);
 			}
