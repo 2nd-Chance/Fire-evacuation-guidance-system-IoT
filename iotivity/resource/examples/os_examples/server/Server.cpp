@@ -31,7 +31,7 @@ using namespace std;
 #include "GenericResource.h"
 
 
-#define SVR_DB_FILE_NAME		"./oic_svr_db_server.dat"
+#define SVR_DB_FILE_NAME			"./oic_svr_db_server.dat"
 #define INTROSPECTION_FILE_NAME		"client_introspection.dat"
 
 

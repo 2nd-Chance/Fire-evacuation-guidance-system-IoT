@@ -1,0 +1,8 @@
+env = Environment()
+
+env.Append(LIBPATH=['/usr/local/lib'])
+env.Append(LIBS=['mpg123', 'ao', 'pthread'])
+env.Append(CPPDEFINES=['AUDIO_TEST_MODE_ON'])
+env.Append(CCFLAGS =['-Wall', '-Werror'])
+
+env.Program('audio.cpp')

@@ -20,7 +20,7 @@ namespace PH = std::placeholders;
 GenericResource::GenericResource(void)
 {
 	m_representation.setUri(RESOURCE_URI);
-	m_representation.setValue(RESOURCE_KEY, m_genericControl.GetValue());
+	m_representation.setValue(RESOURCE_KEY, "");
 
 	m_isStartedThread = false;
 }
@@ -59,6 +59,8 @@ void GenericResource::Post(OCRepresentation rep)
 		string value = "{}";
 
 		if(rep.getValue(RESOURCE_KEY, value)) {
+			m_genericControl.SetValue(value);
+			//@TODO: Something to do... In this place....
 			cout << "\tvalue: " << value << endl;
 
 #ifdef DEVMGMT_TEST_MODE_ON
@@ -67,7 +69,7 @@ void GenericResource::Post(OCRepresentation rep)
 			cout << "\tdevMgmt: " << device->toJson().dump() << endl;
 #endif
 
-			m_genericControl.Control(value);
+			// m_genericControl.Control(value);
 		} else {
 			cout << "\tvalue not found in the representation" << endl;
 		} // end of if

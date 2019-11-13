@@ -20,19 +20,19 @@
 
 Import('examples_env')
 
-# // [20191008 hyoungjoon.lee] added path(resource/c_common/ocrandom/include) to fix compile error by 1.3.1
+examples_env.AppendUnique(LIBPATH=['/usr/local/lib'])
+examples_env.AppendUnique(LIBS=['z', 'hiredis'])
 examples_env.AppendUnique(CPPPATH=[
     '#/resource/csdk/connectivity/api',
     '#/resource/csdk/security/include/experimental',
     '#/resource/csdk/security/provisioning/include',
     '#/resource/csdk/security/provisioning/include/internal',
-    '#/resource/c_common/ocrandom/include'
+    '#/resource/c_common/ocrandom/include',
+    '/usr/local/include/hiredis',
 ])
 
-# // [20191008 hyoungjoon.lee] added build option - SECURED
 if(examples_env.get('SECURED') == '1'):
 	examples_env.AppendUnique(LIBS=['ocprovision'])
-# // [20191008 hyoungjoon.lee] added build option - SECURED
 
 examples_env.SConscript('#/../model/SConscript')
 examples_env.SConscript('client/SConscript', exports='examples_env')
