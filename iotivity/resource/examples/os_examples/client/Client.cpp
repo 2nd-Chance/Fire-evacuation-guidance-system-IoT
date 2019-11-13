@@ -242,16 +242,16 @@ void onObserve(const HeaderOptions& /*headerOptions*/, const OCRepresentation& r
 
 #ifdef DEVMGMT_TEST_MODE_ON
 				auto device = model::DeviceBuilder()
-					.setUuid("uuid" + to_string(idx))
-					.setRoomId(idx * 11)
+					.setUuid("uuid" + to_string(test))
+					.setRoomId(test * 11)
 					.setDeviceClass(model::DeviceClass1Builder()
-						.setSensorType("type_" + to_string(idx))
-						.setSensorValue("value_" + to_string(idx))
+						.setSensorType("type_" + to_string(test))
+						.setSensorValue("value_" + to_string(test))
 						.build()
 					)
-					.setBluetoothMac("" + to_string(idx))
+					.setBluetoothMac("" + to_string(test))
 					.buildStatic();
-				idx++;
+				test++;
 				value_stream << device->toJson().dump();
 #else
 				value_stream << resource->uniqueIdentifier();
