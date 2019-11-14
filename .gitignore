@@ -185,3 +185,5 @@ debian/tmp/*
 *.exe
 *.out
 *.app
+.vs/
+.idea/

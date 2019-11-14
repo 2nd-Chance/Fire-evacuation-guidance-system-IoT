@@ -19,6 +19,9 @@ using namespace std;
 
 #include "experimental/ocrandom.h"
 #include "OCProvisioningManager.hpp"
+#include "devMgmt/Device.h"
+#include "devMgmt/DeviceBuilder.h"
+#include "devMgmt/DeviceClassBuilder.h"
 
 #include "Util.h"
 #include "GenericModel.h"
@@ -237,9 +240,23 @@ void onObserve(const HeaderOptions& /*headerOptions*/, const OCRepresentation& r
 				string post_value, uuid;
 				shared_ptr<OCResource> resource(_registered_resources[RESOURCE_URI]);
 
+#ifdef DEVMGMT_TEST_MODE_ON
+				auto device = model::DeviceBuilder()
+					.setUuid("uuid" + to_string(test))
+					.setRoomId(test * 11)
+					.setDeviceClass(model::DeviceClass1Builder()
+						.setSensorType("type_" + to_string(test))
+						.setSensorValue("value_" + to_string(test))
+						.build()
+					)
+					.setBluetoothMac("" + to_string(test))
+					.buildStatic();
+				test++;
+				value_stream << device->toJson().dump();
+#else
 				value_stream << resource->uniqueIdentifier();
 				uuid = value_stream.str();
-
+				
 				value_stream.str(string()); /* reset the value stream */
 				value_stream.clear();
 				
@@ -247,6 +264,7 @@ void onObserve(const HeaderOptions& /*headerOptions*/, const OCRepresentation& r
 				             << "\"value\":"<< test++ << ","
 							 << "\"UUID\":\""<< uuid.substr(0, uuid.find("/"))  << "\","
 							 <<"}";
+#endif
 				post_value = value_stream.str();
 				_generic_model.PostRepresentation(_registered_resources[RESOURCE_URI],
 						RESOURCE_KEY, post_value, &onPost);
