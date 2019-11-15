@@ -77,7 +77,7 @@ int Bluetooth::ping(const char *svr)
 	struct sigaction sa;
 	struct sockaddr_l2 addr;
 	socklen_t optlen;
-	int i, sk;
+	int sk;
 	int count = this->count;
 
 	memset(&sa, 0, sizeof(sa));
@@ -92,6 +92,7 @@ int Bluetooth::ping(const char *svr)
 	}
 
 	try {
+		int i;
 		char str[18];
 		uint8_t id;
 
