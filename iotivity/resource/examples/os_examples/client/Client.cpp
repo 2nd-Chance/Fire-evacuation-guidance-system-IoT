@@ -25,11 +25,24 @@ using namespace std;
 
 #include "Util.h"
 #include "GenericModel.h"
+#include "Bluetooth.h"
+
 #define SVR_DB_FILE_NAME    "./oic_svr_db_client.dat"
+
+#define RESOURCE_TYPE		"BTspeaker" /* MUST CHANGE */
+
+#define RESOURCE_STATE      RESOURCE_DYNAMIC    /* MUST CHANGE */
+#define RESOURCE_STATIC     1
+#define RESOURCE_DYNAMIC    0
+
 #define RESOURCE_URI        "/SpeechTTSResURI"
 #define RESOURCE_KEY        "utterance"
 
 #define DISCOVERY_TIMEOUT   (3)
+
+#define BLUETOOTH_COUNT (10)
+#define BLUETOOTH_DELAY (10)
+#define BLUETOOTH_TIMEOUT (100)
 
 typedef map<OCResourceIdentifier, shared_ptr<OCResource>> \
 			DiscoveredResourceMap;
@@ -42,6 +55,7 @@ static RegisteredResourceMap _registered_resources;
 static Util _util;
 static GenericModel _generic_model;
 static mutex _resource_lock;
+static Bluetooth& bluetooth = Bluetooth::getInstance();
 
 const  char* convResCodeToString (int);
 static void  foundResource       (shared_ptr<OCResource>);
@@ -212,6 +226,54 @@ void onPost(const HeaderOptions &/*headerOptions*/, const OCRepresentation &rep,
 	cout << endl;
 }
 
+static bool getAlertStatus()
+{
+	/* Device alert status treat */
+	return false;
+}
+
+static string getDeviceValue()
+{
+	/* Device value treat */
+	stringstream stream;
+	static int temperate = 0;
+	temperate++;
+	stream << temperate;
+	return (stream.str());
+}
+
+static string getPostValue(shared_ptr<OCResource> resource)
+{
+	static int room_id = 0;
+	stringstream stream;
+	string post_value, uuid;
+	string value;
+	stream << resource->uniqueIdentifier();
+	uuid = stream.str();
+	uuid = uuid.substr(0, uuid.find("/"));
+	
+	stream.str(string()); /* reset the value stream */
+	stream.clear();
+
+	auto device = model::DeviceBuilder()
+		.setUuid(uuid)
+		.setRoomId(room_id) /* Same as NULL*/
+		.setDeviceClass(model::DeviceClass1Builder()
+			.setSensorType(RESOURCE_TYPE)
+			.setSensorValue(getDeviceValue())
+			.setAlertState(getAlertStatus())
+			.build()
+		)
+		.setBluetoothMac(bluetooth.getLocalMAC())
+#if (RESOURCE_STATE == RESOURCE_DYNAMIC)
+		.buildDynamic();
+#else
+		.buildStatic();
+#endif
+	stream << device->toJson().dump();
+	return (stream.str());
+}
+
 void onObserve(const HeaderOptions& /*headerOptions*/, const OCRepresentation& rep,
 		const int eCode, const int sequenceNumber)
 {
@@ -235,37 +297,7 @@ void onObserve(const HeaderOptions& /*headerOptions*/, const OCRepresentation& r
 			cout << endl;
 
 			if (_registered_resources[RESOURCE_URI]) {
-				static int test = 0;
-				stringstream value_stream;
-				string post_value, uuid;
-				shared_ptr<OCResource> resource(_registered_resources[RESOURCE_URI]);
-
-#ifdef DEVMGMT_TEST_MODE_ON
-				auto device = model::DeviceBuilder()
-					.setUuid("uuid" + to_string(test))
-					.setRoomId(test * 11)
-					.setDeviceClass(model::DeviceClass1Builder()
-						.setSensorType("type_" + to_string(test))
-						.setSensorValue("value_" + to_string(test))
-						.build()
-					)
-					.setBluetoothMac("" + to_string(test))
-					.buildStatic();
-				test++;
-				value_stream << device->toJson().dump();
-#else
-				value_stream << resource->uniqueIdentifier();
-				uuid = value_stream.str();
-				
-				value_stream.str(string()); /* reset the value stream */
-				value_stream.clear();
-				
-				value_stream << "{"
-				             << "\"value\":"<< test++ << ","
-							 << "\"UUID\":\""<< uuid.substr(0, uuid.find("/"))  << "\","
-							 <<"}";
-#endif
-				post_value = value_stream.str();
+				string post_value = getPostValue(_registered_resources[RESOURCE_URI]);
 				_generic_model.PostRepresentation(_registered_resources[RESOURCE_URI],
 						RESOURCE_KEY, post_value, &onPost);
 			}
@@ -334,7 +366,14 @@ FILE* _client_fopen(const char *path, const char *mode)
 	return fopen(file_name, mode);
 }
 
+static void bluetooth_config() {
+	bluetooth.setCount(BLUETOOTH_COUNT);
+	bluetooth.setDelay(BLUETOOTH_DELAY);
+	bluetooth.setTimeout(BLUETOOTH_TIMEOUT);
+}
+
 void _init(PlatformConfig cfg)
 {
+	bluetooth_config();
 	OCPlatform::Configure(cfg);
 }

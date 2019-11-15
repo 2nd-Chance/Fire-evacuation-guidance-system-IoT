@@ -1,4 +1,4 @@
-#include "bluetooth.h"
+#include "Bluetooth.h"
 
 Bluetooth* Bluetooth::_instance = NULL;
 
