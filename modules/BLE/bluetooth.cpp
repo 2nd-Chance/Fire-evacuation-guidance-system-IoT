@@ -45,6 +45,27 @@ Bluetooth& Bluetooth::getInstance()
 	return *_instance;
 }
 
+std::string Bluetooth::getLocalMAC()
+{
+	std::string local_addr = "";
+	struct hci_dev_info di;
+	bdaddr_t bdaddr;
+	char str[18];
+	int dev_id = hci_get_route(NULL);
+	int err = hci_devinfo(dev_id, &di);
+
+	if (err) {
+		return local_addr;
+	}
+
+	bacpy(&bdaddr, &di.bdaddr);
+
+	ba2str(&bdaddr, str);
+	local_addr = str;
+
+	return local_addr;
+}
+
 void Bluetooth::setTimeout(int millisec)
 {
 	if (millisec > delay) {
@@ -254,6 +275,7 @@ int Bluetooth::ping(const char *svr)
 int main(void)
 {
 	Bluetooth& blue = Bluetooth::getInstance();
+	std::cout << blue.getLocalMAC() << std::endl;
 	blue.setCount(10);
 	blue.setDelay(10);
 	blue.setTimeout(100);
