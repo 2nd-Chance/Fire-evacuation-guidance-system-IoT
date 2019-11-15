@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <cerrno>
 #include <csignal>
+#include <ctime>
 #include <unistd.h>
 #include <getopt.h>
 #include <sys/time.h>
@@ -35,7 +36,8 @@ public:
 	static void setLoss(int _loss) { loss = _loss; }
 	double getLatency() { return (latency / (count - loss)); }
 	void setCount(int count) { this->count = count; }
-	void setDelay(int micro_sec) { this->delay = micro_sec; }
+	void setTimeout(int millisec);
+	void setDelay(int millisec) { this->delay = millisec; }
 	int ping(const char *svr);
 
 private:

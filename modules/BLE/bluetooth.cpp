@@ -45,6 +45,15 @@ Bluetooth& Bluetooth::getInstance()
 	return *_instance;
 }
 
+void Bluetooth::setTimeout(int millisec)
+{
+	if (millisec > delay) {
+		timeout = millisec;
+	} else {
+		timeout = delay;
+	}
+}
+
 void Bluetooth::initMemberValue()
 {
 	bdaddr_t bdaddr_any = { };
@@ -52,7 +61,7 @@ void Bluetooth::initMemberValue()
 	ident    = 200;
 	delay    = 300;
 	count    = 10;
-	timeout  = 10;
+	timeout  = 10 * 1000; /* 10 sec */
 	reverse  = 0;
 	verify   = 0;
 
@@ -68,10 +77,8 @@ int Bluetooth::ping(const char *svr)
 	struct sigaction sa;
 	struct sockaddr_l2 addr;
 	socklen_t optlen;
-	char str[18];
-	int i, sk, lost;
+	int i, sk;
 	int count = this->count;
-	uint8_t id;
 
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = stat;
@@ -85,6 +92,9 @@ int Bluetooth::ping(const char *svr)
 	}
 
 	try {
+		char str[18];
+		uint8_t id;
+
 		/* Create socket*/
 		sk = socket(PF_BLUETOOTH, SOCK_RAW, BTPROTO_L2CAP);
 		if (sk < 0) {
@@ -128,6 +138,7 @@ int Bluetooth::ping(const char *svr)
 
 		while (count == -1 || count-- > 0) {
 			struct timeval tv_send, tv_recv, tv_diff;
+			int lost;
 			l2cap_cmd_hdr *send_cmd = (l2cap_cmd_hdr *) send_buf;
 			l2cap_cmd_hdr *recv_cmd = (l2cap_cmd_hdr *) recv_buf;
 
@@ -156,7 +167,7 @@ int Bluetooth::ping(const char *svr)
 				pf[0].fd = sk;
 				pf[0].events = POLLIN;
 
-				if ((err = poll(pf, 1, timeout * 1000)) < 0) {
+				if ((err = poll(pf, 1, timeout)) < 0) {
 					throw std::runtime_error("Poll failed");
 				}
 
@@ -216,8 +227,12 @@ int Bluetooth::ping(const char *svr)
 
 				latency += tv2fl(tv_diff);
 
-				if (delay)
-					usleep(delay);
+				if (delay > 0) {
+					struct timespec req =  {0};
+					req.tv_sec = 0;
+					req.tv_nsec = delay * 1000000L;
+					nanosleep(&req, (struct timespec *)NULL);
+				}
 			} else {
 				throw std::runtime_error("No response...");
 			}// end of if
@@ -239,7 +254,8 @@ int main(void)
 {
 	Bluetooth& blue = Bluetooth::getInstance();
 	blue.setCount(10);
-	blue.setDelay(500);
+	blue.setDelay(10);
+	blue.setTimeout(100);
 	blue.ping("B8:27:EB:04:C9:79");
 	std::cout << "Result >>>>> " << blue.getLoss()  << "/" << blue.getLatency() << std::endl;
 	return 0;
