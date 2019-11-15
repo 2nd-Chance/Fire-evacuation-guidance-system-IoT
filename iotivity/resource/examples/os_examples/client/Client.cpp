@@ -29,7 +29,7 @@ using namespace std;
 
 #define SVR_DB_FILE_NAME    "./oic_svr_db_client.dat"
 
-#define RESOURCE_TYPE		"bluetooth speaker" /* MUST CHANGE */
+#define RESOURCE_TYPE		"BTspeaker" /* MUST CHANGE */
 
 #define RESOURCE_STATE      RESOURCE_DYNAMIC    /* MUST CHANGE */
 #define RESOURCE_STATIC     1
@@ -226,8 +226,15 @@ void onPost(const HeaderOptions &/*headerOptions*/, const OCRepresentation &rep,
 	cout << endl;
 }
 
+static bool getAlertStatus()
+{
+	/* Device alert status treat */
+	return false;
+}
+
 static string getDeviceValue()
 {
+	/* Device value treat */
 	stringstream stream;
 	static int temperate = 0;
 	temperate++;
@@ -254,6 +261,7 @@ static string getPostValue(shared_ptr<OCResource> resource)
 		.setDeviceClass(model::DeviceClass1Builder()
 			.setSensorType(RESOURCE_TYPE)
 			.setSensorValue(getDeviceValue())
+			.setAlertState(getAlertStatus())
 			.build()
 		)
 		.setBluetoothMac(bluetooth.getLocalMAC())
