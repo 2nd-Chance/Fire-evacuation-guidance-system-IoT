@@ -25,7 +25,9 @@ using namespace std;
 
 #include "Util.h"
 #include "GenericModel.h"
+
 #define SVR_DB_FILE_NAME    "./oic_svr_db_client.dat"
+#define RESOURCE_TYPE		"bluetooth speaker" /* MUST CHANGE */
 #define RESOURCE_URI        "/SpeechTTSResURI"
 #define RESOURCE_KEY        "utterance"
 
@@ -232,6 +234,8 @@ void onObserve(const HeaderOptions& /*headerOptions*/, const OCRepresentation& r
 				cout << "\tVALUE: " << _generic_model.GetValue() << endl;
 			}
 
+			/* Get from the temp val from modules. */
+
 			cout << endl;
 
 			if (_registered_resources[RESOURCE_URI]) {
@@ -239,13 +243,18 @@ void onObserve(const HeaderOptions& /*headerOptions*/, const OCRepresentation& r
 				stringstream value_stream;
 				string post_value, uuid;
 				shared_ptr<OCResource> resource(_registered_resources[RESOURCE_URI]);
+				value_stream << resource->uniqueIdentifier();
+				uuid = value_stream.str();
+				
+				value_stream.str(string()); /* reset the value stream */
+				value_stream.clear();
 
-#ifdef DEVMGMT_TEST_MODE_ON
+
 				auto device = model::DeviceBuilder()
-					.setUuid("uuid" + to_string(test))
-					.setRoomId(test * 11)
+					.setUuid(uuid.substr(0, uuid.find("/")))
+					.setRoomId(0)
 					.setDeviceClass(model::DeviceClass1Builder()
-						.setSensorType("type_" + to_string(test))
+						.setSensorType(RESOURCE_TYPE)
 						.setSensorValue("value_" + to_string(test))
 						.build()
 					)
@@ -253,18 +262,7 @@ void onObserve(const HeaderOptions& /*headerOptions*/, const OCRepresentation& r
 					.buildStatic();
 				test++;
 				value_stream << device->toJson().dump();
-#else
-				value_stream << resource->uniqueIdentifier();
-				uuid = value_stream.str();
-				
-				value_stream.str(string()); /* reset the value stream */
-				value_stream.clear();
-				
-				value_stream << "{"
-				             << "\"value\":"<< test++ << ","
-							 << "\"UUID\":\""<< uuid.substr(0, uuid.find("/"))  << "\","
-							 <<"}";
-#endif
+								
 				post_value = value_stream.str();
 				_generic_model.PostRepresentation(_registered_resources[RESOURCE_URI],
 						RESOURCE_KEY, post_value, &onPost);
