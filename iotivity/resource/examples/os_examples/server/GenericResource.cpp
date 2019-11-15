@@ -60,6 +60,8 @@ void GenericResource::Post(OCRepresentation rep)
 
 		if(rep.getValue(RESOURCE_KEY, value)) {
 			m_genericControl.SetValue(value);
+			
+			//@TODO: Something to do... In this place....
 			cout << "\tvalue: " << value << endl;
 
 #ifdef DEVMGMT_TEST_MODE_ON
@@ -75,7 +77,6 @@ void GenericResource::Post(OCRepresentation rep)
 				<< device->getDeviceType() << endl;
 			cout << "\t\tdev.json: " << device->toJson().dump() << endl;
 #endif
-
 			// m_genericControl.Control(value);
 		} else {
 			cout << "\tvalue not found in the representation" << endl;

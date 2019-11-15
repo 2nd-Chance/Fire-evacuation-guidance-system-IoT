@@ -1,0 +1,7 @@
+env = Environment()
+
+env.Append(LIBS=['bluetooth'])
+env.Append(CPPDEFINES=['BLUETOOTH_TEST_MODE_ON'])
+env.Append(CCFLAGS =['-Wall', '-Werror'])
+
+env.Program('bluetooth.cpp')
