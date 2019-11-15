@@ -35,6 +35,7 @@ public:
 	static int getLoss() { return loss; }
 	static void setLoss(int _loss) { loss = _loss; }
 	double getLatency() { return (latency / (count - loss)); }
+	std::string getLocalMAC();
 	void setCount(int count) { this->count = count; }
 	void setTimeout(int millisec);
 	void setDelay(int millisec) { this->delay = millisec; }
@@ -69,6 +70,5 @@ private:
 	static int sent_pkt;
 	static int recv_pkt;
 	static int loss;
-
 };
 #endif
