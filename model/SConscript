@@ -1,0 +1,5 @@
+Library('devMgmt', [
+	'Device.cpp', 'DeviceBuilder.cpp', 'DeviceClass.cpp',
+	'DeviceClassBuilder.cpp', 'Location.cpp',
+	'LocationBuilder.cpp', 'Room.cpp', 'RoomBuilder.cpp'
+])
