@@ -36,13 +36,16 @@
 class RedisDb
 {
 public:
-	RedisDb(void);
+	RedisDb(const char *hostname="127.0.0.1", const int port=6379, const char *password=NULL);
 	std::map<std::string, std::string> getEntries(const char *key);
+	void appendToList(const char *key, const char *data);
+	void removeFromList(const char *key, const int count, const char *value);
+	std::vector<std::string> getList(const char *key, const int start, const int end);
 	void setEntries(const char *key, 
 			std::map<std::string, std::string> &entriesInfo);
 	~RedisDb(void);
 private:
-	std::vector<std::string> getList(const char *cmd, const char *key);
+	std::vector<std::string> getArray(const char *cmd, const char *key);
 	redisContext *m_context;
 };
 
