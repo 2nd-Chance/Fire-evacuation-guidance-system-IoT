@@ -331,9 +331,11 @@ string getDeviceValue()
 string getPostValue(shared_ptr<OCResource> resource)
 {
 	static int room_id = 0;
+	bool device_alert_state;
 	stringstream stream;
 	string post_value, uuid;
 	string value;
+
 	stream << resource->uniqueIdentifier();
 	uuid = stream.str();
 	uuid = uuid.substr(0, uuid.find("/"));
@@ -341,13 +343,15 @@ string getPostValue(shared_ptr<OCResource> resource)
 	stream.str(string()); /* reset the value stream */
 	stream.clear();
 
+	device_alert_state = getAlertStatus(resource);
 	auto device = model::DeviceBuilder()
 		.setUuid(uuid)
 		.setRoomId(room_id) /* Same as NULL*/
-		.setDeviceClass(model::DeviceClass1Builder()
+		.setDeviceClass(model::DeviceClass2Builder()
 			.setSensorType(RESOURCE_TYPE)
 			.setSensorValue(getDeviceValue())
-			.setAlertState(getAlertStatus(resource))
+			.setAlertState(device_alert_state)
+			.setAliveState(true)
 			.build()
 		)
 		.setBluetoothMac(bluetooth.getLocalMAC())

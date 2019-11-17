@@ -462,8 +462,6 @@ void bluetooth_init()
 void normal_state_run() 
 {
 	while (1) {
-		audio.get()->open(current_song);
-		audio.get()->play();
 	}
 }
 

@@ -35,9 +35,9 @@ using namespace std;
 
 #define SVR_DB_FILE_NAME    "./oic_svr_db_client.dat"
 
-#define RESOURCE_TYPE		"BTspeaker" /* MUST CHANGE */
+#define RESOURCE_TYPE		"LED" /* MUST CHANGE */
 
-#define RESOURCE_STATE      RESOURCE_DYNAMIC    /* MUST CHANGE */
+#define RESOURCE_STATE      RESOURCE_STATIC /* MUST CHANGE */
 #define RESOURCE_STATIC     1
 #define RESOURCE_DYNAMIC    0
 
@@ -50,7 +50,11 @@ using namespace std;
 #define BLUETOOTH_DELAY (10)
 #define BLUETOOTH_TIMEOUT (100)
 
-#define TEMPER_WARNING (27.0)
+#define ROOM_ID_FIELD "id"
+#define LINKS_FIELD "lk"
+#define PING_PONG_START false
+
+#define NSEC_TO_MSEC 1000000L
 
 typedef map<OCResourceIdentifier, shared_ptr<OCResource>> \
 			DiscoveredResourceMap;
@@ -63,12 +67,11 @@ static RegisteredResourceMap _registered_resources;
 static Util _util;
 static GenericModel _generic_model;
 static mutex _resource_lock;
-static mutex _temper_lock;
+static mutex _led_lock;
 static Bluetooth& bluetooth = Bluetooth::getInstance();
 
-static std::string current_song = "normal.mp3";
-static std::shared_ptr<GenericControl<double>> temper;
-static std::shared_ptr<Audio> audio;
+static std::shared_ptr<GenericControl<int>> led;
+static std::string uuid;
 
 static redisContext *m_context;
 
@@ -79,10 +82,11 @@ static void onPost    (const HeaderOptions&, const OCRepresentation&, const int)
 static void onObserve (const HeaderOptions&, const OCRepresentation&, const int, const int);
 static void onGet     (const HeaderOptions&, const OCRepresentation&, const int);
 
-bool getAlertStatus(shared_ptr<OCResource> resource);
-string getDeviceValue();
-string getPostValue(shared_ptr<OCResource> resource);
+static bool getAlertStatus(shared_ptr<OCResource> resource);
+// static string getDeviceValue();
+static string getPostValue(shared_ptr<OCResource> resource);
 static void bluetooth_init();
+static void bluetooth_state_run();
 static void normal_state_run();
 
 static FILE* _client_fopen (const char*, const char*);
@@ -107,9 +111,9 @@ int main(void)
 	_init(config);
 
 	bluetooth_init();
-	temper = std::make_shared<GenericControl<double>>();
-	audio = std::make_shared<Audio>();
-	std::thread runner(normal_state_run);
+	led = std::make_shared<GenericControl<int>>();
+	std::thread runner1(normal_state_run);
+	std::thread runner2(bluetooth_state_run);
 
 	try {
 		DeviceList_t       list;
@@ -143,7 +147,8 @@ int main(void)
 		oclog() << "EXCEPTION IN main: " << e.what();
 	}
 
-	runner.join();
+	runner1.join();
+	runner2.join();
 	redisFree(m_context);
 	return 0;
 }
@@ -260,7 +265,6 @@ bool getAlertStatus(shared_ptr<OCResource> resource)
 	std::string alert_value;
 	redisReply *reply;
 
-	double temperature = 0.0;
 	bool ret = false;
 
 	if (m_context == NULL) {
@@ -291,9 +295,7 @@ bool getAlertStatus(shared_ptr<OCResource> resource)
 		}
 	} // end of if
 
-	_temper_lock.lock();
-	temperature = temper->GetValue();
-
+	_led_lock.lock();
 	reply = (redisReply *)redisCommand(m_context, "GET alert");
 	if (reply == NULL) {
 		printf("reply is NULL: %s\n", m_context->errstr);
@@ -301,42 +303,41 @@ bool getAlertStatus(shared_ptr<OCResource> resource)
 		throw std::runtime_error("cannot retrieve the value");
 	}
 	alert_value = reply->str;
-	_temper_lock.unlock();
+	_led_lock.unlock();
 
-	if (temperature > TEMPER_WARNING || alert_value == "1") {
-		current_song = "emergency.mp3";
-		audio->stop();
-		reply = (redisReply *)redisCommand(m_context, "SET alert 1");
-		if (reply == NULL) {
-			printf("reply is NULL: %s\n", m_context->errstr);
-			freeReplyObject(reply);
-			throw std::runtime_error("cannot retrieve the value");
-		}
+	if (alert_value == "1") {
+		led->SetValue(2);
 		ret = true;
 	} else {
-		current_song = "normal.mp3";
+		led->SetValue(3);
+		ret = false;
 	}
 	return ret;
 }
 
+#if 0
 string getDeviceValue()
 {
 	stringstream stream;
-	_temper_lock.lock();
-	stream << temper->GetValue();
-	_temper_lock.unlock();
+	_led_lock.lock();
+	stream << led->GetValue();
+	_led_lock.unlock();
 	return (stream.str());
 }
+#endif
 
 string getPostValue(shared_ptr<OCResource> resource)
 {
 	static int room_id = 0;
 	stringstream stream;
-	string post_value, uuid;
+	string post_value;
 	string value;
-	stream << resource->uniqueIdentifier();
-	uuid = stream.str();
-	uuid = uuid.substr(0, uuid.find("/"));
+
+	if (uuid == "") {
+		stream << resource->uniqueIdentifier();
+		uuid = stream.str();
+		uuid = uuid.substr(0, uuid.find("/"));
+	}
 	
 	stream.str(string()); /* reset the value stream */
 	stream.clear();
@@ -344,10 +345,9 @@ string getPostValue(shared_ptr<OCResource> resource)
 	auto device = model::DeviceBuilder()
 		.setUuid(uuid)
 		.setRoomId(room_id) /* Same as NULL*/
-		.setDeviceClass(model::DeviceClass1Builder()
-			.setSensorType(RESOURCE_TYPE)
-			.setSensorValue(getDeviceValue())
+		.setDeviceClass(model::DeviceClass3Builder()
 			.setAlertState(getAlertStatus(resource))
+			.setAliveState(true)
 			.build()
 		)
 		.setBluetoothMac(bluetooth.getLocalMAC())
@@ -459,11 +459,65 @@ void bluetooth_init()
 	bluetooth.setTimeout(BLUETOOTH_TIMEOUT);
 }
 
-void normal_state_run() 
+void bluetooth_state_run()
 {
+	struct timespec ts = {
+		.tv_sec = 0,
+		.tv_nsec = 250*NSEC_TO_MSEC,
+	};
+
+	std::string room_id, MACs_str;
+	redisReply *reply;
+
+	while (m_context == NULL || !PING_PONG_START) {
+		nanosleep(&ts, NULL);
+	}
+
+	_led_lock.lock();
+	reply = (redisReply *)redisCommand(m_context, "HMGET %s %s", uuid, ROOM_ID_FIELD);
+	if (reply == NULL) {
+		printf("reply is NULL: %s\n", m_context->errstr);
+		freeReplyObject(reply);
+		throw std::runtime_error("cannot retrieve the value");
+	}
+	MACs_str = reply->str;
+	_led_lock.unlock();
+
 	while (1) {
-		audio.get()->open(current_song);
-		audio.get()->play();
+		std::regex re("([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})");
+		_led_lock.lock();
+		reply = (redisReply *)redisCommand(m_context, "HMGET %s %s", room_id, LINKS_FIELD);
+		if (reply == NULL) {
+			printf("reply is NULL: %s\n", m_context->errstr);
+			freeReplyObject(reply);
+			throw std::runtime_error("cannot retrieve the value");
+		}
+		MACs_str = reply->str;
+		_led_lock.unlock();
+
+		for (std::sregex_iterator it = std::sregex_iterator(MACs_str.begin(), MACs_str.end(), re);
+				it != std::sregex_iterator();
+				it++) {
+			smatch match;
+			match = *it;
+			bluetooth.ping(match.str(0).c_str());
+		}
+
+		nanosleep(&ts,NULL);
+	}
+}
+
+void normal_state_run() 
+{	
+	struct timespec ts = {
+		.tv_sec = 0,
+		.tv_nsec = 500*NSEC_TO_MSEC,
+	};
+
+	
+	while (1) {
+		led->Control();
+		nanosleep(&ts,NULL);
 	}
 }
 
