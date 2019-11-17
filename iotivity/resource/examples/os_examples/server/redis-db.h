@@ -37,12 +37,12 @@ class RedisDb
 {
 public:
 	RedisDb(void);
+	std::vector<std::string> execute(const char *cmd, const char *key);
 	std::map<std::string, std::string> getEntries(const char *key);
 	void setEntries(const char *key, 
 			std::map<std::string, std::string> &entriesInfo);
 	~RedisDb(void);
 private:
-	std::vector<std::string> getList(const char *cmd, const char *key);
 	redisContext *m_context;
 };
 

@@ -50,8 +50,8 @@ std::map<std::string, std::string> RedisDb::getEntries(const char *key)
 	std::vector<std::string> values, keys;
 	int i = 0;
 
-	keys = getList("HKEYS", key);
-	values = getList("HVALS", key);
+	keys = execute("HKEYS", key);
+	values = execute("HVALS", key);
 
 	if (keys.size() != values.size())
 		throw std::length_error("key and value doesn't sample length");
@@ -83,7 +83,7 @@ void RedisDb::setEntries(const char *key,
 	freeReplyObject(reply);
 }
 
-std::vector<std::string> RedisDb::getList(const char *cmd, const char *key)
+std::vector<std::string> RedisDb::execute(const char *cmd, const char *key)
 {
 	std::vector<std::string> resultList;
 	redisReply *reply;
