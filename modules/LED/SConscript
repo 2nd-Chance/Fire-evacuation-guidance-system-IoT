@@ -1,0 +1,6 @@
+env = Environment()
+
+env.Append(LIBS = ['wiringPi', 'pthread'])
+env.Append(CCFLAGS =['-Wall'])
+
+env.Program('led', ['main.cpp', 'GenericControl.cpp'])
