@@ -96,9 +96,38 @@ std::vector<std::string> RedisDb::execute(const char *cmd, const char *key)
 		throw std::runtime_error("cannot retrieve the value");
 	}
 
-	for(i = 0; i < (int)reply->elements; i++) {
-		std::string element(reply->element[i]->str);
-		resultList.push_back(element);
+	if (reply->type == REDIS_REPLY_ARRAY) {
+		for(i = 0; i < (int)reply->elements; i++) {
+			std::string element(reply->element[i]->str);
+			resultList.push_back(element);
+		}
+	}
+	return resultList;
+}
+
+std::vector<std::string> RedisDb::execute(const char *cmd, const char *key, const char *values)
+{
+	std::vector<std::string> resultList;
+	redisReply *reply;
+	int i;
+
+	reply = (redisReply *)redisCommand(m_context, "%s %s %s", cmd, key, values);
+	if (reply == NULL) {
+		printf("reply is NULL: %s\n", m_context->errstr);
+		freeReplyObject(reply);
+		throw std::runtime_error("cannot retrieve the value");
+	}
+	if (reply->type == REDIS_REPLY_ERROR) {
+		printf("Command Error: %s\n", reply->str);
+		freeReplyObject(reply);
+		throw std::runtime_error("reply type is error");
+	}
+
+	if (reply->type == REDIS_REPLY_ARRAY) {
+		for(i = 0; i < (int)reply->elements; i++) {
+			std::string element(reply->element[i]->str);
+			resultList.push_back(element);
+		}
 	}
 	return resultList;
 }
@@ -114,6 +143,7 @@ int main(void)
 	std::unique_ptr<RedisDb> redisDb(new RedisDb());
 	std::map<std::string, std::string> src;
 	std::map<std::string, std::string> ret;
+	std::vector<std::string> values;
 
 	src["name"] = "gijun";
 	src["age"] = "26";
@@ -121,12 +151,16 @@ int main(void)
 	src["gender"] = "Male";
 
 	redisDb->setEntries("test", src);
+	redisDb->execute("SADD", "devices","hello world man");
 	ret = redisDb->getEntries("test");
 
 	std::cout << ret["name"] << std::endl
 		<< ret["age"] << std::endl
 		<< ret["gender"] << std::endl
 		<< ret["birth"] << std::endl;
+	values = redisDb->execute("SMEMBERS", "devices");
+	for(auto& value: values)
+		std::cout << value << std::endl;
 	return 0;
 }
 #endif

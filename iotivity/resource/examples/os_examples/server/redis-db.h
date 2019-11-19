@@ -38,6 +38,7 @@ class RedisDb
 public:
 	RedisDb(void);
 	std::vector<std::string> execute(const char *cmd, const char *key);
+	std::vector<std::string> execute(const char *cmd, const char *key, const char *values);
 	std::map<std::string, std::string> getEntries(const char *key);
 	void setEntries(const char *key, 
 			std::map<std::string, std::string> &entriesInfo);

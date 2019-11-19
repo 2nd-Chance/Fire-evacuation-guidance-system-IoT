@@ -54,7 +54,7 @@ examples_env.AppendUnique(LIBS=['oc'])
 
 compiler = examples_env.get('CXX')
 if 'g++' in compiler:
-    examples_env.AppendUnique(CXXFLAGS=['-std=c++0x', '-Wall'])
+    examples_env.AppendUnique(CXXFLAGS=['-std=c++0x', '-Wall', '-pg', '-g'])
 
 if target_os in ['msys_nt', 'windows']:
     examples_env.PrependUnique(LIBS=[

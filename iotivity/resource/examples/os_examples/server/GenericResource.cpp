@@ -18,6 +18,8 @@ namespace PH = std::placeholders;
 #define RESOURCE_PROPERTY	(OC_DISCOVERABLE | OC_OBSERVABLE | OC_SECURE)
 #define RESOURCE_KEY		"utterance"
 
+#define DEVICE_LIST_KEY     "devices"
+
 static map<int, string> resource_table;
 static shared_ptr<RedisDb> redis;
 
@@ -66,9 +68,7 @@ static void addResourceTable(OCRepresentation rep, ObservationInfo observationIn
 	nlohmann::json json_object = nlohmann::json::parse(value);
 	auto device = model::Device::parse(json_object);
 
-	/* TODO: SHIT! */
-	cout <<"SADD devices " << device->getUuid().c_str() << endl;
-	redis->execute("SADD devices", device->getUuid().c_str());
+	redis->execute("SADD", DEVICE_LIST_KEY, device->getUuid().c_str());
 	resource_table.insert(make_pair((int)observationInfo.obsId, device->getUuid()));
 }
 
