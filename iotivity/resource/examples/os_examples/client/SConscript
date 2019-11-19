@@ -25,7 +25,9 @@ examples_env.AppendUnique(CPPPATH=[
 	Dir('.').srcnode().path
 ])
 
-examples_env.Append(LIBS=['devMgmt','bluetooth'])
+examples_env.Append(LIBPATH=['/usr/local/lib'])
+examples_env.Append(CPPPATH=['/usr/local/include/hiredis'])
+examples_env.Append(LIBS=['devMgmt','bluetooth', 'ao', 'mpg123', 'pthread', 'hiredis'])
 examples_env.Append(LIBPATH=['#/../model', '/usr/lib', '/usr/local/lib'])
 examples_env.Append(CPPDEFINES=['DEVMGMT_TEST_MODE_ON'])
 
@@ -34,8 +36,10 @@ client_files = [
 	'GenericModel.cpp',
 	'Util.cpp',
 	'Bluetooth.cpp',
+	'audio.cpp',
+	'GenericControl.cpp'
 ]
-output = examples_env.Program(client_files)
+output = examples_env.Program('BluetoothSpeaker', client_files)
 
 examples_env.Alias("output", output)
 examples_env.AppendTarget('output')

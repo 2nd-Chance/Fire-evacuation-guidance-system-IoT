@@ -35,5 +35,6 @@ if(examples_env.get('SECURED') == '1'):
 	examples_env.AppendUnique(LIBS=['ocprovision'])
 
 examples_env.SConscript('#/../model/SConscript')
-examples_env.SConscript('client/SConscript', exports='examples_env')
+examples_env.SConscript('BluetoothSpeaker/SConscript', exports='examples_env')
+examples_env.SConscript('SmartLED/SConscript', exports='examples_env')
 examples_env.SConscript('server/SConscript', exports='examples_env')
