@@ -20,12 +20,10 @@
 
 #include "redis-db.h"
 
-RedisDb::RedisDb()
+RedisDb::RedisDb(const char *hostname, const int port, const char* password)
 {
 	bool is_valid = false;
 
-	const char* hostname = "127.0.0.1";
-	const int port = 6379;
 	struct timeval timeout = { 1, 500000 }; // 1.5 seconds
 
 	m_context = redisConnectWithTimeout(hostname, port, timeout);
@@ -42,6 +40,16 @@ RedisDb::RedisDb()
 		}
 		exit(1);
 	}
+
+	if (password != NULL) {
+		redisReply *reply = (redisReply *)redisCommand(m_context, "AUTH %s", password);
+		if (reply == NULL) {
+			printf("reply is NULL: %s\n", m_context->errstr);
+			freeReplyObject(reply);
+			throw std::runtime_error("cannot retrieve the value");
+		}
+		freeReplyObject(reply);
+	}
 }
 
 std::map<std::string, std::string> RedisDb::getEntries(const char *key)
@@ -53,6 +61,7 @@ std::map<std::string, std::string> RedisDb::getEntries(const char *key)
 	keys = execute("HKEYS", key);
 	values = execute("HVALS", key);
 
+
 	if (keys.size() != values.size())
 		throw std::length_error("key and value doesn't sample length");
 
@@ -61,6 +70,50 @@ std::map<std::string, std::string> RedisDb::getEntries(const char *key)
 	}
 
 	return entry;
+}
+
+void RedisDb::appendToList(const char *key, const char *data)
+{
+	redisReply *reply;
+	reply = (redisReply *)redisCommand(m_context, "RPUSH %s %s", key, data);
+	if (reply == NULL) {
+		printf("reply is NULL: %s\n", m_context->errstr);
+		freeReplyObject(reply);
+		throw std::runtime_error("cannot retrieve the value");
+	}
+	freeReplyObject(reply);
+}
+
+void RedisDb::removeFromList(const char *key, const int count, const char *value)
+{
+	redisReply *reply;
+	reply = (redisReply *)redisCommand(m_context, "LREM %s %d %s", key, count, value);
+	if (reply == NULL) {
+		printf("reply is NULL: %s\n", m_context->errstr);
+		freeReplyObject(reply);
+		throw std::runtime_error("cannot retrieve the value");
+	}
+	freeReplyObject(reply);
+}
+
+std::vector<std::string> RedisDb::getList(const char *key, const int start, const int end)
+{
+	std::vector<std::string> resultList;
+	redisReply *reply;
+	int i;
+
+	reply = (redisReply *)redisCommand(m_context, "LRANGE %s %d %d", key, start, end);
+	if (reply == NULL) {
+		printf("reply is NULL: %s\n", m_context->errstr);
+		freeReplyObject(reply);
+		throw std::runtime_error("cannot retrieve the value");
+	}
+
+	for(i = 0; i < (int)reply->elements; i++) {
+		std::string element(reply->element[i]->str);
+		resultList.push_back(element);
+	}
+	return resultList;
 }
 
 void RedisDb::setEntries(const char *key,
@@ -140,7 +193,7 @@ RedisDb::~RedisDb()
 #ifdef REDIS_DB_TEST_MODE_ON
 int main(void)
 {
-	std::unique_ptr<RedisDb> redisDb(new RedisDb());
+	std::unique_ptr<RedisDb> redisDb(new RedisDb("127.0.0.1"));
 	std::map<std::string, std::string> src;
 	std::map<std::string, std::string> ret;
 	std::vector<std::string> values;
@@ -151,6 +204,7 @@ int main(void)
 	src["gender"] = "Male";
 
 	redisDb->setEntries("test", src);
+
 	redisDb->execute("SADD", "devices","hello world man");
 	ret = redisDb->getEntries("test");
 

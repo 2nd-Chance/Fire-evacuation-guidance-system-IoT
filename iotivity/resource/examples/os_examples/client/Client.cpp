@@ -12,7 +12,10 @@
 #include <cstdlib>
 #include <mutex>
 #include <condition_variable>
+#include <thread>
 #include <sstream>
+#include <vector>
+#include <regex>
 
 using namespace OC;
 using namespace std;
@@ -25,7 +28,10 @@ using namespace std;
 
 #include "Util.h"
 #include "GenericModel.h"
+#include "GenericControl.h"
 #include "Bluetooth.h"
+#include "audio.h"
+#include "hiredis.h"
 
 #define SVR_DB_FILE_NAME    "./oic_svr_db_client.dat"
 
@@ -44,6 +50,8 @@ using namespace std;
 #define BLUETOOTH_DELAY (10)
 #define BLUETOOTH_TIMEOUT (100)
 
+#define TEMPER_WARNING (27.0)
+
 typedef map<OCResourceIdentifier, shared_ptr<OCResource>> \
 			DiscoveredResourceMap;
 typedef map<string, shared_ptr<OCResource>> \
@@ -55,7 +63,14 @@ static RegisteredResourceMap _registered_resources;
 static Util _util;
 static GenericModel _generic_model;
 static mutex _resource_lock;
+static mutex _temper_lock;
 static Bluetooth& bluetooth = Bluetooth::getInstance();
+
+static std::string current_song = "normal.mp3";
+static std::shared_ptr<GenericControl<double>> temper;
+static std::shared_ptr<Audio> audio;
+
+static redisContext *m_context;
 
 const  char* convResCodeToString (int);
 static void  foundResource       (shared_ptr<OCResource>);
@@ -63,6 +78,12 @@ static void  foundResource       (shared_ptr<OCResource>);
 static void onPost    (const HeaderOptions&, const OCRepresentation&, const int);
 static void onObserve (const HeaderOptions&, const OCRepresentation&, const int, const int);
 static void onGet     (const HeaderOptions&, const OCRepresentation&, const int);
+
+bool getAlertStatus(shared_ptr<OCResource> resource);
+string getDeviceValue();
+string getPostValue(shared_ptr<OCResource> resource);
+static void bluetooth_init();
+static void normal_state_run();
 
 static FILE* _client_fopen (const char*, const char*);
 static void  _init         (PlatformConfig cfg);
@@ -84,6 +105,11 @@ int main(void)
 	};
 
 	_init(config);
+
+	bluetooth_init();
+	temper = std::make_shared<GenericControl<double>>();
+	audio = std::make_shared<Audio>();
+	std::thread runner(normal_state_run);
 
 	try {
 		DeviceList_t       list;
@@ -113,9 +139,12 @@ int main(void)
 
 		cout << "END CLIENT" << endl;
 	} catch (OCException& e) {
+		redisFree(m_context);
 		oclog() << "EXCEPTION IN main: " << e.what();
 	}
 
+	runner.join();
+	redisFree(m_context);
 	return 0;
 }
 
@@ -226,23 +255,80 @@ void onPost(const HeaderOptions &/*headerOptions*/, const OCRepresentation &rep,
 	cout << endl;
 }
 
-static bool getAlertStatus()
+bool getAlertStatus(shared_ptr<OCResource> resource)
 {
-	/* Device alert status treat */
-	return false;
+	std::string alert_value;
+	redisReply *reply;
+
+	double temperature = 0.0;
+	bool ret = false;
+
+	if (m_context == NULL) {
+		std::regex reg("\\d{1,3}(\\.\\d{1,3}){3}");
+		std::smatch result;
+		std::string hostname = resource->host();
+		int port = 6379;
+		struct timeval timeout = {1, 500000}; // 1.5 seconds
+
+		if (!std::regex_search(hostname, result, reg)) {
+			std::cerr << "Cannot find the host" << resource->host() << std::endl;
+			return ret;
+		}
+
+		hostname = result.str(0);
+		std::cout << "Connection location ==> " << hostname << std::endl;
+		m_context = redisConnectWithTimeout(hostname.c_str(), port ,timeout);
+
+		if (m_context == NULL || m_context->err) {
+			if (m_context) {
+				std::cerr << "Connection fail to redis" << std::endl;
+				redisFree(m_context);
+				return false;
+			} // end of if
+		} else {
+			std::cerr << "Cannot allocated m_context by server redis" << std::endl;
+			return false;
+		}
+	} // end of if
+
+	_temper_lock.lock();
+	temperature = temper->GetValue();
+
+	reply = (redisReply *)redisCommand(m_context, "GET alert");
+	if (reply == NULL) {
+		printf("reply is NULL: %s\n", m_context->errstr);
+		freeReplyObject(reply);
+		throw std::runtime_error("cannot retrieve the value");
+	}
+	alert_value = reply->str;
+	_temper_lock.unlock();
+
+	if (temperature > TEMPER_WARNING || alert_value == "1") {
+		current_song = "emergency.mp3";
+		audio->stop();
+		reply = (redisReply *)redisCommand(m_context, "SET alert 1");
+		if (reply == NULL) {
+			printf("reply is NULL: %s\n", m_context->errstr);
+			freeReplyObject(reply);
+			throw std::runtime_error("cannot retrieve the value");
+		}
+		ret = true;
+	} else {
+		current_song = "normal.mp3";
+	}
+	return ret;
 }
 
-static string getDeviceValue()
+string getDeviceValue()
 {
-	/* Device value treat */
 	stringstream stream;
-	static int temperate = 0;
-	temperate++;
-	stream << temperate;
+	_temper_lock.lock();
+	stream << temper->GetValue();
+	_temper_lock.unlock();
 	return (stream.str());
 }
 
-static string getPostValue(shared_ptr<OCResource> resource)
+string getPostValue(shared_ptr<OCResource> resource)
 {
 	static int room_id = 0;
 	stringstream stream;
@@ -261,7 +347,7 @@ static string getPostValue(shared_ptr<OCResource> resource)
 		.setDeviceClass(model::DeviceClass1Builder()
 			.setSensorType(RESOURCE_TYPE)
 			.setSensorValue(getDeviceValue())
-			.setAlertState(getAlertStatus())
+			.setAlertState(getAlertStatus(resource))
 			.build()
 		)
 		.setBluetoothMac(bluetooth.getLocalMAC())
@@ -366,14 +452,20 @@ FILE* _client_fopen(const char *path, const char *mode)
 	return fopen(file_name, mode);
 }
 
-static void bluetooth_config() {
+void bluetooth_init() 
+{
 	bluetooth.setCount(BLUETOOTH_COUNT);
 	bluetooth.setDelay(BLUETOOTH_DELAY);
 	bluetooth.setTimeout(BLUETOOTH_TIMEOUT);
 }
 
+void normal_state_run() 
+{
+	while (1) {
+	}
+}
+
 void _init(PlatformConfig cfg)
 {
-	bluetooth_config();
 	OCPlatform::Configure(cfg);
 }
