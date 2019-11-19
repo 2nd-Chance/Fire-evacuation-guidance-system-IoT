@@ -58,8 +58,9 @@ std::map<std::string, std::string> RedisDb::getEntries(const char *key)
 	std::vector<std::string> values, keys;
 	int i = 0;
 
-	keys = getArray("HKEYS", key);
-	values = getArray("HVALS", key);
+	keys = execute("HKEYS", key);
+	values = execute("HVALS", key);
+
 
 	if (keys.size() != values.size())
 		throw std::length_error("key and value doesn't sample length");
@@ -135,7 +136,7 @@ void RedisDb::setEntries(const char *key,
 	freeReplyObject(reply);
 }
 
-std::vector<std::string> RedisDb::getArray(const char *cmd, const char *key)
+std::vector<std::string> RedisDb::execute(const char *cmd, const char *key)
 {
 	std::vector<std::string> resultList;
 	redisReply *reply;
@@ -148,9 +149,38 @@ std::vector<std::string> RedisDb::getArray(const char *cmd, const char *key)
 		throw std::runtime_error("cannot retrieve the value");
 	}
 
-	for(i = 0; i < (int)reply->elements; i++) {
-		std::string element(reply->element[i]->str);
-		resultList.push_back(element);
+	if (reply->type == REDIS_REPLY_ARRAY) {
+		for(i = 0; i < (int)reply->elements; i++) {
+			std::string element(reply->element[i]->str);
+			resultList.push_back(element);
+		}
+	}
+	return resultList;
+}
+
+std::vector<std::string> RedisDb::execute(const char *cmd, const char *key, const char *values)
+{
+	std::vector<std::string> resultList;
+	redisReply *reply;
+	int i;
+
+	reply = (redisReply *)redisCommand(m_context, "%s %s %s", cmd, key, values);
+	if (reply == NULL) {
+		printf("reply is NULL: %s\n", m_context->errstr);
+		freeReplyObject(reply);
+		throw std::runtime_error("cannot retrieve the value");
+	}
+	if (reply->type == REDIS_REPLY_ERROR) {
+		printf("Command Error: %s\n", reply->str);
+		freeReplyObject(reply);
+		throw std::runtime_error("reply type is error");
+	}
+
+	if (reply->type == REDIS_REPLY_ARRAY) {
+		for(i = 0; i < (int)reply->elements; i++) {
+			std::string element(reply->element[i]->str);
+			resultList.push_back(element);
+		}
 	}
 	return resultList;
 }
@@ -165,7 +195,7 @@ int main(void)
 {
 	std::unique_ptr<RedisDb> redisDb(new RedisDb("127.0.0.1"));
 	std::map<std::string, std::string> src;
-	std::map<std::string, std::string> entries;
+	std::map<std::string, std::string> ret;
 	std::vector<std::string> values;
 
 	src["name"] = "gijun";
@@ -174,23 +204,16 @@ int main(void)
 	src["gender"] = "Male";
 
 	redisDb->setEntries("test", src);
-	entries = redisDb->getEntries("test");
-	std::cout << entries["name"] << std::endl
-		<< entries["age"] << std::endl
-		<< entries["gender"] << std::endl
-		<< entries["birth"] << std::endl;
 
-	redisDb->appendToList("sample", "hello");
-	redisDb->appendToList("sample", "trash");
-	redisDb->appendToList("sample", "world");
+	redisDb->execute("SADD", "devices","hello world man");
+	ret = redisDb->getEntries("test");
 
-	values = redisDb->getList("sample", 0, -1);
-	for (auto& value : values)
-		std::cout << value << std::endl;
-	redisDb->removeFromList("sample", 1, "trash");
-
-	values = redisDb->getList("sample", 0, -1);
-	for (auto& value : values)
+	std::cout << ret["name"] << std::endl
+		<< ret["age"] << std::endl
+		<< ret["gender"] << std::endl
+		<< ret["birth"] << std::endl;
+	values = redisDb->execute("SMEMBERS", "devices");
+	for(auto& value: values)
 		std::cout << value << std::endl;
 	return 0;
 }

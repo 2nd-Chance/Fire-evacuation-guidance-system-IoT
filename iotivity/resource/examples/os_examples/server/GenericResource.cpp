@@ -1,14 +1,16 @@
 #include "OCPlatform.h"
 
+#include <sstream>
+#include <map>
 
 using namespace OC;
 using namespace std;
 namespace PH = std::placeholders;
 
-
 #include "GenericControl.h"
 #include "GenericResource.h"
 #include "devMgmt/Device.h"
+#include "redis-db.h"
 
 #define RESOURCE_URI		"/SpeechTTSResURI"
 #define RESOURCE_TYPE_NAME	"oic.d.ams"
@@ -16,11 +18,17 @@ namespace PH = std::placeholders;
 #define RESOURCE_PROPERTY	(OC_DISCOVERABLE | OC_OBSERVABLE | OC_SECURE)
 #define RESOURCE_KEY		"utterance"
 
+#define DEVICE_LIST_KEY     "devices"
+
+static map<int, string> resource_table;
+static shared_ptr<RedisDb> redis;
+
 
 GenericResource::GenericResource(void)
 {
 	m_representation.setUri(RESOURCE_URI);
 	m_representation.setValue(RESOURCE_KEY, "");
+	redis = make_shared<RedisDb>();
 
 	m_isStartedThread = false;
 }
@@ -46,38 +54,66 @@ OCRepresentation GenericResource::Get(void)
 {
 	string value = m_genericControl.GetValue();
 
-	cout << "\tvalue: " << value << endl;
-
 	m_representation.setValue(RESOURCE_KEY, value);
 
 	return m_representation;
 }
 
+static void addResourceTable(OCRepresentation rep, ObservationInfo observationInfo)
+{
+	string value = "{}";
+	if(!rep.getValue(RESOURCE_KEY, value))
+		return ;
+
+	nlohmann::json json_object = nlohmann::json::parse(value);
+	auto device = model::Device::parse(json_object);
+
+	redis->execute("SADD", DEVICE_LIST_KEY, device->getUuid().c_str());
+	resource_table.insert(make_pair((int)observationInfo.obsId, device->getUuid()));
+}
+
 void GenericResource::Post(OCRepresentation rep)
 {
 	try {
+		stringstream stream;
 		string value = "{}";
 
 		if(rep.getValue(RESOURCE_KEY, value)) {
+			map<string, string> entriesInfo;
+
 			m_genericControl.SetValue(value);
 			
-			//@TODO: Something to do... In this place....
-			cout << "\tvalue: " << value << endl;
-
 #ifdef DEVMGMT_TEST_MODE_ON
-			auto jsonString = nlohmann::json::parse(value);
-			auto device = model::Device::parse(jsonString);
-			cout << "\t\tdev.uuid: " \
-				<< device->getUuid() << endl;
-			cout << "\t\tdev.btMac: " \
-				<< device->getBluetoothMac() << endl;
-			cout << "\t\tdev.devClass: " \
-				<< device->getDeviceClass()->getClassId() << endl;
-			cout << "\t\tdev.devType: " \
-				<< device->getDeviceType() << endl;
+			nlohmann::json json_object = nlohmann::json::parse(value);
+			auto device = model::Device::parse(json_object);
+			entriesInfo.insert(make_pair("id", device->getUuid()));
+			entriesInfo.insert(make_pair("bm", device->getBluetoothMac()));
+			entriesInfo.insert(make_pair("dt", device->getDeviceType()));
+
+			stream << device->getDeviceClass()->getClassId();
+			entriesInfo.insert(make_pair("ci", stream.str()));
+			stream.str(string());
+
+			stream << device->getDeviceClass()->getAlertState();
+			entriesInfo.insert(make_pair("ar", stream.str()));
+			stream.str(string());
+
+			stream << device->getDeviceClass()->getAliveState();
+			entriesInfo.insert(make_pair("al", stream.str()));
+			stream.str(string());
+
+			if(device->getDeviceClass()->getClassId() == 2) {
+				entriesInfo.insert(make_pair("st", json_object["cl"]["st"]));
+				entriesInfo.insert(make_pair("st", json_object["cl"]["sv"]));
+			}
+
+			redis->setEntries(device->getUuid().c_str(), entriesInfo);
 			cout << "\t\tdev.json: " << device->toJson().dump() << endl;
+
+			for(auto& kv: resource_table) {
+				cout << kv.first << " >> " << kv.second << endl;
+			}
 #endif
-			// m_genericControl.Control(value);
 		} else {
 			cout << "\tvalue not found in the representation" << endl;
 		} // end of if
@@ -95,6 +131,11 @@ void GenericResource::Observe(ObservationInfo observationInfo)
 			m_interestedObservers.push_back(observationInfo.obsId);
 			break;
 		case ObserveAction::ObserveUnregister:
+			map<string, string> entriesInfo;
+			int id = observationInfo.obsId;
+			entriesInfo.insert(make_pair("al", "0"));
+			redis->setEntries(resource_table[id].c_str(), entriesInfo);
+			resource_table.erase((int)observationInfo.obsId);
 			m_interestedObservers.erase(
 				std::remove(
 					m_interestedObservers.begin(),
@@ -140,6 +181,7 @@ OCEntityHandlerResult GenericResource::EntityHandlerCB(shared_ptr<OCResourceRequ
 			} else if(requestType == "POST") {
 				OCRepresentation rep = request->getResourceRepresentation();
 
+				addResourceTable(rep, request->getObservationInfo());
 				this->Post(rep);
 
 				response->setResponseResult(OC_EH_OK);
@@ -155,7 +197,6 @@ OCEntityHandlerResult GenericResource::EntityHandlerCB(shared_ptr<OCResourceRequ
 
 		if(requestFlag & RequestHandlerFlag::ObserverFlag) {
 			cout << "\trequestFlag : Observer" << endl;
-
 			this->Observe(request->getObservationInfo());
 			ehResult = OC_EH_OK;
 		}
