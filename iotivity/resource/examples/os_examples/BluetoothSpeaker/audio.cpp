@@ -31,10 +31,6 @@ void Audio::open(const std::string& file_name)
     int channels, encoding;
     long rate;
 
-	while (should_kick_stop) {
-		std::cout << "Wait to stop the song..." << std::endl;
-	}
-
 	mpg123_open(mpg_handle, file_name.c_str());
     mpg123_getformat(mpg_handle, &rate, &channels, &encoding);
 
