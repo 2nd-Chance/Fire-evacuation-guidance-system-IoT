@@ -1,0 +1,6 @@
+env = Environment()
+
+env.Append(LIBS = ['cryptopp'])
+env.Append(CCFLAGS =['-Wall'])
+
+env.Program(['crypto.cpp'])
