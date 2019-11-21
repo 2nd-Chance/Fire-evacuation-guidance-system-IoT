@@ -341,7 +341,7 @@ bool getAlertStatus(shared_ptr<OCResource> resource)
 	alert_value = reply->str;
 	_temper_lock.unlock();
 
-	if (temperature > TEMPER_WARNING || alert_value == "1") {
+	if (current_song != "emergency.mp3" && (temperature > TEMPER_WARNING || alert_value == "1")) {
 		current_song = "emergency.mp3";
 		audio->stop();
 		reply = (redisReply *)redisCommand(m_context, "SET alert 1");
@@ -351,8 +351,6 @@ bool getAlertStatus(shared_ptr<OCResource> resource)
 			throw std::runtime_error("cannot retrieve the value");
 		}
 		ret = true;
-	} else {
-		current_song = "normal.mp3";
 	}
 	return ret;
 }
