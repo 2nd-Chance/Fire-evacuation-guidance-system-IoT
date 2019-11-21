@@ -33,9 +33,16 @@ using namespace std;
 #include "audio.h"
 #include "hiredis.h"
 
+#define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
+
+#include <cryptopp/md5.h>
+#include <cryptopp/files.h>
+#include <cryptopp/filters.h>
+#include <cryptopp/hex.h>
+
 #define SVR_DB_FILE_NAME    "./oic_svr_db_client.dat"
 
-#define RESOURCE_TYPE		"BTspeaker" /* MUST CHANGE */
+#define RESOURCE_TYPE       "BTspeaker" /* MUST CHANGE */
 
 #define RESOURCE_STATE      RESOURCE_DYNAMIC    /* MUST CHANGE */
 #define RESOURCE_STATIC     1
@@ -66,11 +73,13 @@ static mutex _resource_lock;
 static mutex _temper_lock;
 static Bluetooth& bluetooth = Bluetooth::getInstance();
 
-static std::string current_song = "normal.mp3";
-static std::shared_ptr<GenericControl<double>> temper;
-static std::shared_ptr<Audio> audio;
+static string current_song = "normal.mp3";
+static shared_ptr<GenericControl<double>> temper;
+static shared_ptr<Audio> audio;
 
 static redisContext *m_context;
+
+static string g_serial_number;
 
 const  char* convResCodeToString (int);
 static void  foundResource       (shared_ptr<OCResource>);
@@ -87,6 +96,8 @@ static void normal_state_run();
 
 static FILE* _client_fopen (const char*, const char*);
 static void  _init         (PlatformConfig cfg);
+
+static string generate_serial_number();
 
 int main(void)
 {
@@ -110,6 +121,8 @@ int main(void)
 	temper = std::make_shared<GenericControl<double>>();
 	audio = std::make_shared<Audio>();
 	std::thread runner(normal_state_run);
+
+	g_serial_number = generate_serial_number();
 
 	try {
 		DeviceList_t       list;
@@ -146,6 +159,31 @@ int main(void)
 	runner.join();
 	redisFree(m_context);
 	return 0;
+}
+
+string generate_serial_number()
+{
+	using namespace CryptoPP;
+
+	stringstream serial_number;
+	stringstream raw_stream;
+
+	HexEncoder encoder(new FileSink(serial_number));
+
+	Weak::MD5 hash;
+
+	raw_stream << RESOURCE_TYPE << bluetooth.getLocalMAC();
+
+	string raw_serial = raw_stream.str();
+	string digest;
+
+	hash.Update((const byte*)raw_serial.data(), raw_serial.size());
+	digest.resize(hash.DigestSize());
+	hash.Final((byte*)&digest[0]);
+
+	StringSource(digest, true, new Redirector(encoder));
+
+	return serial_number.str();
 }
 
 const char* convResCodeToString(int resCode)
@@ -303,7 +341,7 @@ bool getAlertStatus(shared_ptr<OCResource> resource)
 	alert_value = reply->str;
 	_temper_lock.unlock();
 
-	if (temperature > TEMPER_WARNING || alert_value == "1") {
+	if (current_song != "emergency.mp3" && (temperature > TEMPER_WARNING || alert_value == "1")) {
 		current_song = "emergency.mp3";
 		audio->stop();
 		reply = (redisReply *)redisCommand(m_context, "SET alert 1");
@@ -313,8 +351,6 @@ bool getAlertStatus(shared_ptr<OCResource> resource)
 			throw std::runtime_error("cannot retrieve the value");
 		}
 		ret = true;
-	} else {
-		current_song = "normal.mp3";
 	}
 	return ret;
 }
@@ -333,19 +369,12 @@ string getPostValue(shared_ptr<OCResource> resource)
 	static int room_id = 0;
 	bool device_alert_state;
 	stringstream stream;
-	string post_value, uuid;
+	string post_value;
 	string value;
-
-	stream << resource->uniqueIdentifier();
-	uuid = stream.str();
-	uuid = uuid.substr(0, uuid.find("/"));
-	
-	stream.str(string()); /* reset the value stream */
-	stream.clear();
 
 	device_alert_state = getAlertStatus(resource);
 	auto device = model::DeviceBuilder()
-		.setUuid(uuid)
+		.setUuid(g_serial_number)
 		.setRoomId(room_id) /* Same as NULL*/
 		.setDeviceClass(model::DeviceClass2Builder()
 			.setSensorType(RESOURCE_TYPE)
