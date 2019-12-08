@@ -104,7 +104,7 @@ void GenericResource::Post(OCRepresentation rep)
 
 			if(device->getDeviceClass()->getClassId() == 2) {
 				entriesInfo.insert(make_pair("st", json_object["cl"]["st"]));
-				entriesInfo.insert(make_pair("st", json_object["cl"]["sv"]));
+				entriesInfo.insert(make_pair("sv", json_object["cl"]["sv"]));
 			}
 
 			redis->setEntries(device->getUuid().c_str(), entriesInfo);

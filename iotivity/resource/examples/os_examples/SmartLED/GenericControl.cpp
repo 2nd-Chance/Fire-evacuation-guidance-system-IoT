@@ -35,24 +35,24 @@ void GenericControl<T>::Control(void)
 {
 	switch(m_value) {
 	case 0:
-		digitalWrite(LED_R, LOW);
-		digitalWrite(LED_G, HIGH);
-		digitalWrite(LED_B, HIGH);
+		digitalWrite(LED_R, HIGH);
+		digitalWrite(LED_G, LOW);
+		digitalWrite(LED_B, LOW);
 		break;
 	case 1:
-		digitalWrite(LED_R, HIGH);
-		digitalWrite(LED_G, LOW);
-		digitalWrite(LED_B, HIGH);
-		break;
-	case 2:
-		digitalWrite(LED_R, HIGH);
+		digitalWrite(LED_R, LOW);
 		digitalWrite(LED_G, HIGH);
 		digitalWrite(LED_B, LOW);
 		break;
-	case 3:
+	case 2:
 		digitalWrite(LED_R, LOW);
 		digitalWrite(LED_G, LOW);
-		digitalWrite(LED_B, LOW);
+		digitalWrite(LED_B, HIGH);
+		break;
+	case 3:
+		digitalWrite(LED_R, HIGH);
+		digitalWrite(LED_G, HIGH);
+		digitalWrite(LED_B, HIGH);
 		break;
 	default:
 		digitalWrite(LED_R, HIGH);
