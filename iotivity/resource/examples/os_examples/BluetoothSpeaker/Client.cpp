@@ -273,7 +273,7 @@ void foundResource(shared_ptr<OCResource> resource)
 	}
 }
 
-void onPost(const HeaderOptions &/*headerOptions*/, const OCRepresentation &rep,
+void onPost(const HeaderOptions &/*headerOptions*/, const OCRepresentation &/*rep*/,
 		const int eCode)
 {
 	cout << "[POST CALLBACK]" << endl;
@@ -281,7 +281,7 @@ void onPost(const HeaderOptions &/*headerOptions*/, const OCRepresentation &rep,
 	try {
 		if (eCode == OC_STACK_OK || eCode == OC_STACK_RESOURCE_CHANGED) {
 			cout << "\tPOST REQUEST WAS SUCCESSFUL\n" << endl;
-			_generic_model.SetValue(rep, RESOURCE_KEY);
+			//_generic_model.SetValue(rep, RESOURCE_KEY);
 			cout << "\tVALUE: " << _generic_model.GetValue() << endl;
 		} else {
 			cout << "\tonPost RESPONSE ERROR: " << convResCodeToString(eCode) << endl;
@@ -295,9 +295,8 @@ void onPost(const HeaderOptions &/*headerOptions*/, const OCRepresentation &rep,
 
 bool getAlertStatus(shared_ptr<OCResource> resource)
 {
-	std::string alert_value;
+	std::string alert_value = "0";
 	redisReply *reply;
-
 	double temperature = 0.0;
 	bool ret = false;
 
@@ -367,12 +366,14 @@ string getDeviceValue()
 string getPostValue(shared_ptr<OCResource> resource)
 {
 	static int room_id = 0;
-	bool device_alert_state;
+	static bool device_alert_state = false;
 	stringstream stream;
 	string post_value;
 	string value;
 
-	device_alert_state = getAlertStatus(resource);
+	if (device_alert_state == false)
+		device_alert_state = getAlertStatus(resource);
+
 	auto device = model::DeviceBuilder()
 		.setUuid(g_serial_number)
 		.setRoomId(room_id) /* Same as NULL*/
