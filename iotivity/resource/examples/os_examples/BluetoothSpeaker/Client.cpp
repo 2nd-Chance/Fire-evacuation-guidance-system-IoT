@@ -295,7 +295,6 @@ void onPost(const HeaderOptions &/*headerOptions*/, const OCRepresentation &/*re
 
 bool getAlertStatus(shared_ptr<OCResource> resource)
 {
-	std::string alert_value = "0";
 	redisReply *reply;
 	double temperature = 0.0;
 	bool ret = false;
@@ -337,10 +336,11 @@ bool getAlertStatus(shared_ptr<OCResource> resource)
 		freeReplyObject(reply);
 		throw std::runtime_error("cannot retrieve the value");
 	}
-	alert_value = reply->str;
+	if (string(reply->str) == "1")
+		ret = true;
 	_temper_lock.unlock();
 
-	if (current_song != "emergency.mp3" && (temperature > TEMPER_WARNING || alert_value == "1")) {
+	if (current_song != "emergency.mp3" && (temperature > TEMPER_WARNING || ret == true)) {
 		current_song = "emergency.mp3";
 		audio->stop();
 		reply = (redisReply *)redisCommand(m_context, "SET alert 1");
@@ -349,7 +349,6 @@ bool getAlertStatus(shared_ptr<OCResource> resource)
 			freeReplyObject(reply);
 			throw std::runtime_error("cannot retrieve the value");
 		}
-		ret = true;
 	}
 	return ret;
 }
@@ -365,14 +364,10 @@ string getDeviceValue()
 
 string getPostValue(shared_ptr<OCResource> resource)
 {
-	static int room_id = 0;
-	static bool device_alert_state = false;
+	int room_id = 0;
 	stringstream stream;
 	string post_value;
 	string value;
-
-	if (device_alert_state == false)
-		device_alert_state = getAlertStatus(resource);
 
 	auto device = model::DeviceBuilder()
 		.setUuid(g_serial_number)
@@ -380,7 +375,7 @@ string getPostValue(shared_ptr<OCResource> resource)
 		.setDeviceClass(model::DeviceClass2Builder()
 			.setSensorType(RESOURCE_TYPE)
 			.setSensorValue(getDeviceValue())
-			.setAlertState(device_alert_state)
+			.setAlertState(getAlertStatus(resource))
 			.setAliveState(true)
 			.build()
 		)
